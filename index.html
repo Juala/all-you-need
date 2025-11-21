@@ -67,6 +67,7 @@ const harga = {
   }
 };
 
+// Element references
 const productSelect = document.getElementById("product");
 const jumlahSelect = document.getElementById("jumlah");
 const jumlahBox = document.getElementById("jumlahBox");
@@ -78,7 +79,6 @@ productSelect.addEventListener("change", function(){
   priceDiv.classList.add("hidden");
 
   if(prod==="app_prem"){
-    // App Premium
     jumlahBox.classList.remove("hidden");
     Object.keys(harga.app_prem).forEach(item=>{
       jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
@@ -87,21 +87,18 @@ productSelect.addEventListener("change", function(){
     priceDiv.textContent="Total: Rp "+harga.app_prem[Object.keys(harga.app_prem)[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
 
-    jumlahSelect.addEventListener("change", ()=>{
+    jumlahSelect.addEventListener("change", ()=> {
       priceDiv.textContent="Total: Rp "+harga.app_prem[jumlahSelect.value].toLocaleString();
     });
-
   } else {
-    // Followers / Likes
     jumlahBox.classList.remove("hidden");
     Object.keys(harga[prod]).forEach(item=>{
       jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
     });
-    // tampilkan harga awal
     priceDiv.textContent="Total: Rp "+harga[prod][Object.keys(harga[prod])[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
 
-    jumlahSelect.addEventListener("change", ()=>{
+    jumlahSelect.addEventListener("change", ()=> {
       priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString();
     });
   }
@@ -113,8 +110,33 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
   const product = document.getElementById("product").value;
   const jumlah = document.getElementById("jumlah").value;
   const phone = document.getElementById("phone").value;
+  
+  // Hitung harga total
+  let totalHarga;
+  if(product==="app_prem"){
+    totalHarga = harga.app_prem[jumlah];
+  } else {
+    totalHarga = harga[product][jumlah];
+  }
 
-  window.location.href=`payment.html?product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}`;
+  // Generate Order ID
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+
+  // Kirim ke spreadsheet
+  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      orderId: orderId,
+      product: product,
+      jumlah: jumlah,
+      phone: phone,
+      harga: totalHarga
+    })
+  }).then(res => console.log("Data terkirim ke spreadsheet"));
+
+  // Redirect ke payment.html dengan data
+  window.location.href=`payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&harga=${encodeURIComponent(totalHarga)}`;
 });
 </script>
 
