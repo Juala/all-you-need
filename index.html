@@ -4,65 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Layanan</title>
-
 <style>
-    body { margin:0; background:#0e0f12; color:#fff; font-family: "Poppins", sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
-    .card {
-        background: linear-gradient(145deg, #1a1c20, #111315);
-        padding: 35px;
-        width: 420px;
-        border-radius: 18px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        text-align:center;
-        border:1px solid #2a2d33;
-    }
-    h2 { font-size:26px; margin-bottom:15px; font-weight:700; }
-    label { text-align:left; width:100%; display:block; margin-top:18px; font-weight:500; }
-    select, input {
-        width:100%; padding:12px; margin-top:5px;
-        background:#232528; color:#fff; border:none; border-radius:12px;
-        font-size:15px;
-    }
-    select:focus, input:focus { outline: 2px solid #3498db; }
-    .price-box {
-        margin-top:20px; padding:15px;
-        background:#111315; border:1px solid #2b2e33;
-        border-radius:12px; display:none; font-size:19px; font-weight:600;
-    }
-    .btn {
-        margin-top:25px; width:100%;
-        padding:14px; background:#3498db; color:#fff; font-size:18px;
-        border-radius:12px; cursor:pointer; border:none; transition:.3s;
-        font-weight:600;
-    }
+    body { margin:0; background:#0e0f12; color:#fff; font-family:"Poppins",sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh;}
+    .card { background:#141518; padding:35px; width:420px; border-radius:20px; box-shadow:0 0 20px rgba(0,0,0,0.4); text-align:center; border:1px solid #2b2e33;}
+    h2 { margin-bottom:12px; font-size:26px; font-weight:700; }
+    label { text-align:left; width:100%; display:block; margin-top:15px; }
+    select, input { width:100%; padding:12px; background:#1d1f22; color:#fff; border:none; border-radius:12px; margin-top:5px; }
+    .price-box { margin-top:18px; padding:14px; background:#0f0f11; border:1px solid #2a2d31; border-radius:12px; display:none; font-size:19px; font-weight:600;}
+    .btn { margin-top:22px; width:100%; padding:14px; background:#3498db; border:none; border-radius:14px; font-size:18px; color:#fff; cursor:pointer; font-weight:600;}
     .btn:hover { background:#2176b8; }
 </style>
 </head>
-
 <body>
+
 <div class="card">
     <h2>🛒 Order Layanan</h2>
 
-    <label>Pilih Layanan</label>
+    <label>Pilih Produk</label>
     <select id="service">
         <option value="">-- Pilih Produk --</option>
         <option value="followers">Followers Instagram</option>
         <option value="premium">App Premium</option>
     </select>
 
+    <!-- FOLLOWERS -->
     <div id="followers-box" style="display:none;">
         <label>Pilih Jumlah Followers</label>
         <select id="followers">
-            <option value="10000">10.000 Followers - Rp 10.000</option>
-            <option value="20000">20.000 Followers - Rp 20.000</option>
-            <option value="50000">50.000 Followers - Rp 50.000</option>
+            <option value="11000">100 Followers - Rp 11.000</option>
+            <option value="22000">200 Followers - Rp 22.000</option>
+            <option value="33000">300 Followers - Rp 33.000</option>
+            <option value="44000">400 Followers - Rp 44.000</option>
+            <option value="55000">500 Followers - Rp 55.000</option>
+            <option value="110000">1.000 Followers - Rp 110.000</option>
+            <option value="220000">2.000 Followers - Rp 220.000</option>
+            <option value="550000">5.000 Followers - Rp 550.000</option>
+            <option value="1100000">10.000 Followers - Rp 1.100.000</option>
         </select>
 
-        <label>Link Profil Instagram</label>
-        <input type="text" id="link" placeholder="https://instagram.com/username">
+        <label>Link Profil Instagram / TikTok</label>
+        <input type="text" id="link" placeholder="ex: https://instagram.com/username">
     </div>
 
+    <!-- PREMIUM -->
     <div id="premium-box" style="display:none;">
+        <label>Pilih Layanan Premium</label>
+        <select id="premium">
+            <option value="40000">Netflix 1 Bulan - Rp 40.000</option>
+            <option value="14000">Spotify 1 Bulan - Rp 14.000</option>
+            <option value="35000">Gemini 1 Tahun + 2TB - Rp 35.000</option>
+            <option value="7000">AM Premium 1 Tahun - Rp 7.000</option>
+            <option value="10000">YouTube Premium 1 Bulan - Rp 10.000</option>
+            <option value="20000">Capcut Premium 1 Bulan - Rp 20.000</option>
+            <option value="35000">Gemini + 2TB - Rp 35.000</option>
+            <option value="30000">GPT Premium 1 Bulan - Rp 30.000</option>
+            <option value="5000">Canva Premium 1 Bulan - Rp 5.000</option>
+        </select>
+
         <label>Nomor WhatsApp</label>
         <input type="text" id="phone" placeholder="08xxxx">
     </div>
@@ -71,7 +69,7 @@
         Total Pembayaran: <b id="total">Rp 0</b>
     </div>
 
-    <button class="btn" onclick="goPayment()">Order Sekarang</button>
+    <button class="btn" id="orderBtn">Order Sekarang</button>
 </div>
 
 <script>
@@ -79,41 +77,40 @@ const service = document.getElementById("service");
 const followersBox = document.getElementById("followers-box");
 const premiumBox = document.getElementById("premium-box");
 const priceBox = document.getElementById("price-box");
-const followersSelect = document.getElementById("followers");
 const totalPrice = document.getElementById("total");
 
-service.addEventListener("change", () => {
-    followersBox.style.display = service.value === "followers" ? "block" : "none";
-    premiumBox.style.display = service.value === "premium" ? "block" : "none";
-    priceBox.style.display = service.value ? "block" : "none";
-    updatePrice();
-});
-
-followersSelect.addEventListener("change", updatePrice);
+service.addEventListener("change", updatePrice);
+document.getElementById("followers").addEventListener("change", updatePrice);
+document.getElementById("premium").addEventListener("change", updatePrice);
 
 function updatePrice() {
-    let price = 0;
-    if (service.value === "followers") {
-        price = Number(followersSelect.value);
-    } else if (service.value === "premium") {
-        price = 15000; // harga app premium
+    followersBox.style.display = service.value === "followers" ? "block" : "none";
+    premiumBox.style.display = service.value === "premium" ? "block" : "none";
+
+    if(service.value==="followers"){
+        let val = document.getElementById("followers").value;
+        totalPrice.textContent="Rp " + Number(val).toLocaleString("id-ID");
+        priceBox.style.display="block";
     }
-    totalPrice.textContent = "Rp " + price.toLocaleString("id-ID");
+    if(service.value==="premium"){
+        let val = document.getElementById("premium").value;
+        totalPrice.textContent="Rp " + Number(val).toLocaleString("id-ID");
+        priceBox.style.display="block";
+    }
 }
 
-function goPayment() {
-    const selected = service.value;
-    let price = selected === "followers" ? followersSelect.value : 15000;
-    let data = {
-        service: selected,
-        followers: selected === "followers" ? followersSelect.value : "",
-        link: selected === "followers" ? document.getElementById("link").value : "",
-        phone: selected === "premium" ? document.getElementById("phone").value : "",
-        price: price
+document.getElementById("orderBtn").addEventListener("click", ()=> {
+    let obj = {
+        service: service.value,
+        followers: service.value==="followers"? document.getElementById("followers").value :"",
+        link: document.getElementById("link").value,
+        premium: service.value==="premium"? document.getElementById("premium").value :"",
+        phone: document.getElementById("phone").value,
+        price: totalPrice.textContent
     };
-    localStorage.setItem("orderData", JSON.stringify(data));
+    localStorage.setItem("orderData", JSON.stringify(obj));
     window.location.href = "payment.html";
-}
+});
 </script>
 
 </body>
