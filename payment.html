@@ -27,6 +27,8 @@ h2 {text-align:center; font-weight:700; margin-bottom:20px; color:#222;}
   border-radius:10px;
 }
 .note {text-align:center; margin-top:15px; font-size:14px; color:#777;}
+.qris-box {text-align:center; margin-top:20px;}
+.qris {width:260px; border-radius:10px; border:1px solid #ddd;}
 </style>
 </head>
 
@@ -43,29 +45,34 @@ h2 {text-align:center; font-weight:700; margin-bottom:20px; color:#222;}
 <tr><td>Total Pembayaran</td><td id="harga"></td></tr>
 </table>
 
+<div class="qris-box">
+<p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
+<img src="qris.png" class="qris">
+</div>
+
 <button id="payBtn" class="btn">Konfirmasi Pembayaran via WhatsApp</button>
 
 <a href="index.html" id="newOrder" class="btn-second">Pesan Lagi</a>
 
-<p class="note">*Gunakan ID Pesanan ketika konfirmasi pembayaran</p>
+<p class="note">*Gunakan Order ID ketika konfirmasi pembayaran</p>
 </div>
 
 
 <script>
-// --- Ambil parameter URL ---
+// Ambil parameter dari URL
 const params = new URLSearchParams(window.location.search);
 const produk = params.get("produk");
 const profil = params.get("profil") || params.get("phone");
-const jumlah = params.get("jumlah") || "1";
+const jumlah = params.get("jumlah") || "-";
 const harga = params.get("harga");
 
-// tampilkan ke UI
+// Tampilkan ke UI
 document.getElementById("produk").innerText = produk;
 document.getElementById("profil").innerText = profil;
 document.getElementById("jumlah").innerText = jumlah;
 document.getElementById("harga").innerText = "Rp " + harga;
 
-// ---- Generate Order ID ----
+// Generate Order ID
 function generateOrderId() {
   return "ROJAID-" + Math.floor(100000 + Math.random() * 900000);
 }
@@ -75,16 +82,15 @@ if (!savedID) {
   savedID = generateOrderId();
   localStorage.setItem("orderId", savedID);
 }
-
 document.getElementById("orderId").innerText = "ID Pesanan: " + savedID;
 
-// ---- Tombol Konfirmasi WhatsApp ----
+// Tombol Konfirmasi WhatsApp
 document.getElementById("payBtn").addEventListener("click", () => {
   const waMessage = `Halo Admin, saya ingin konfirmasi pembayaran.\n\nID Pesanan: ${savedID}\nProduk: ${produk}\nJumlah: ${jumlah}\nTotal: Rp ${harga}\nProfil/Nomor: ${profil}`;
   window.location.href = `https://wa.me/6282262642007?text=${encodeURIComponent(waMessage)}`;
 });
 
-// ---- Reset ID ketika klik Pesan Lagi ----
+// Reset ID jika klik "Pesan Lagi"
 document.getElementById("newOrder").addEventListener("click", () => {
   localStorage.removeItem("orderId");
 });
