@@ -5,65 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ROJA STORE - Order Produk</title>
 <style>
-body {
-  font-family: Poppins, Arial, sans-serif;
-  background:#f4f7fc;
-  margin:0;
-  padding:0;
-}
-.container {
-  max-width:600px;
-  margin:40px auto;
-  background:white;
-  padding:25px;
-  border-radius:15px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-h2 {
-  text-align:center;
-  font-weight:700;
-  margin-bottom:20px;
-  color:#222;
-}
-label {
-  font-weight:600;
-  margin-top:10px;
-  display:block;
-}
-select, input {
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-top:7px;
-}
-button {
-  margin-top:20px;
-  width:100%;
-  padding:14px;
-  background:#007bff;
-  font-size:18px;
-  font-weight:700;
-  color:white;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-button:hover {
-  background:#005fcc;
-}
-.price-box {
-  margin-top:12px;
-  padding:10px;
-  background:#eef3ff;
-  border:1px solid #cdd8ff;
-  border-radius:10px;
-  font-size:17px;
-  font-weight:700;
-  text-align:center;
-  color:#004aad;
-  display:none;
-}
+body {font-family:Poppins,Arial,sans-serif;background:#f4f7fc;margin:0;padding:0;}
+.container {max-width:600px;margin:40px auto;background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);}
+h2 {text-align:center;font-weight:700;margin-bottom:20px;color:#222;}
+label {font-weight:600;margin-top:10px;display:block;}
+select,input {width:100%;padding:12px;border-radius:10px;border:1px solid #ccc;margin-top:7px;}
+button {margin-top:20px;width:100%;padding:14px;background:#007bff;font-size:18px;font-weight:700;color:white;border:none;border-radius:10px;cursor:pointer;}
+button:hover {background:#005fcc;}
+.price-box {margin-top:12px;padding:10px;background:#eef3ff;border:1px solid #cdd8ff;border-radius:10px;font-size:17px;font-weight:700;text-align:center;color:#004aad;display:none;}
 </style>
 </head>
 
@@ -72,8 +21,6 @@ button:hover {
 <h2>Form Order ROJA STORE</h2>
 
 <form id="orderForm">
-  <label>Nama Panggilan:</label>
-  <input type="text" id="nama" required />
 
   <label>Nomor WhatsApp:</label>
   <input type="text" id="whatsapp" required />
@@ -99,13 +46,14 @@ button:hover {
   <div id="appBox" style="display:none">
     <label>Pilih Layanan Premium:</label>
     <select id="appList">
-      <option value="Netflix 1 Bulan (40K)">Netflix 1 Bulan (40K)</option>
-      <option value="Spotify Premium 1 Bulan (14K)">Spotify Premium (14K)</option>
-      <option value="Gemini 1 Tahun + 2TB (35K)">Gemini 1 Tahun + 2TB (35K)</option>
-      <option value="YT Premium 1 Bulan (10K)">YT Premium (10K)</option>
-      <option value="Capcut Premium 1 Bulan (20K)">Capcut Premium (20K)</option>
-      <option value="GPT Premium 1 Bulan (30K)">GPT Premium (30K)</option>
-      <option value="Canva Premium 1 Bulan (5K)">Canva Premium (5K)</option>
+      <option value="" disabled selected>-- Pilih Layanan --</option>
+      <option value="Netflix 1 Bulan" data-harga="40000">Netflix 1 Bulan (40K)</option>
+      <option value="Spotify Premium 1 Bulan" data-harga="14000">Spotify Premium (14K)</option>
+      <option value="Gemini 1 Tahun + 2TB" data-harga="35000">Gemini 1 Tahun + 2TB (35K)</option>
+      <option value="YT Premium 1 Bulan" data-harga="10000">YT Premium (10K)</option>
+      <option value="Capcut Premium 1 Bulan" data-harga="20000">Capcut Premium (20K)</option>
+      <option value="GPT Premium 1 Bulan" data-harga="30000">GPT Premium (30K)</option>
+      <option value="Canva Premium 1 Bulan" data-harga="5000">Canva Premium (5K)</option>
     </select>
 
     <label>Nomor Telepon:</label>
@@ -121,12 +69,12 @@ button:hover {
 </div>
 
 <script>
-// Harga list followers & likes
+// Harga followers & likes
 const priceList = {
-  "followers-ig": {100: 11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+  "followers-ig": {100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   "followers-tt": {100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   "likes-ig": {100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
-  "likes-tt": {100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+  "likes-tt": {100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000}
 };
 
 document.getElementById("produk").addEventListener("change", function () {
@@ -148,14 +96,10 @@ document.getElementById("produk").addEventListener("change", function () {
   } else {
     document.getElementById("jumlahBox").style.display = "none";
     document.getElementById("appBox").style.display = "block";
-
-    document.getElementById("priceBox").style.display = "block";
-    document.getElementById("harga").textContent = document.querySelector("#appList option:checked").textContent.match(/\((.*?)\)/)[1];
-
+    document.getElementById("priceBox").style.display = "none";
   }
 });
 
-// Update harga followers ketika ganti jumlah
 document.getElementById("jumlah").addEventListener("change", function () {
   const prod = document.getElementById("produk").value;
   const harga = priceList[prod][this.value];
@@ -163,11 +107,15 @@ document.getElementById("jumlah").addEventListener("change", function () {
   document.getElementById("harga").textContent = harga.toLocaleString("id-ID");
 });
 
-// Submit to payment page
+document.getElementById("appList").addEventListener("change", function(){
+  const harga = this.options[this.selectedIndex].dataset.harga;
+  document.getElementById("priceBox").style.display = "block";
+  document.getElementById("harga").textContent = Number(harga).toLocaleString("id-ID");
+});
+
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
-  const nama = document.getElementById("nama").value;
   const whatsapp = document.getElementById("whatsapp").value;
   const produk = document.getElementById("produk").value;
   const jumlah = document.getElementById("jumlah").value;
@@ -176,9 +124,7 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
   const app = document.getElementById("appList").value;
   const phone = document.getElementById("phone").value;
 
-  const url = `payment.html?nama=${nama}&whatsapp=${whatsapp}&produk=${produk}&jumlah=${jumlah}&profil=${profil}&harga=${harga}&app=${app}&phone=${phone}`;
-
-  window.location.href = url;
+  window.location.href = `payment.html?whatsapp=${whatsapp}&produk=${produk}&jumlah=${jumlah}&profil=${profil}&harga=${harga}&app=${app}&phone=${phone}`;
 });
 </script>
 </body>
