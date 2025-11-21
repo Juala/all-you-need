@@ -3,56 +3,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pembayaran</title>
+<title>Payment | ROJA STORE</title>
+
 <style>
-    body{background:#0e0f12;color:#fff;font-family:"Poppins",sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;}
-    .box{background:#141518;padding:32px;width:420px;border-radius:22px;text-align:center;box-shadow:0 0 20px rgba(0,0,0,.4);border:1px solid #2a2d31;}
-    h2{font-size:25px;font-weight:700;margin-bottom:10px;}
-    img{width:260px;border-radius:14px;margin:14px auto;}
-    .price{font-size:26px;font-weight:700;margin-top:10px;}
-    .btn{padding:14px;background:#25d366;color:#fff;text-decoration:none;display:block;margin-top:18px;border-radius:14px;font-size:19px;font-weight:600;}
+body {
+  font-family: Poppins, Arial, sans-serif;
+  background: #f4f7fc;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 500px;
+  margin: 50px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+h2 {
+  text-align: center;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 15px;
+}
+.info-box {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  background: #eef3ff;
+  border: 1px solid #cdd8ff;
+}
+p { font-size: 15px; margin: 6px 0; }
+.value { font-weight: bold; color:#004aad }
+.qris-box {
+  margin-top: 20px;
+  text-align: center;
+}
+button {
+  background: #007bff;
+  width: 100%;
+  padding: 14px;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 18px;
+}
+button:hover {
+  background:#005fcc;
+}
 </style>
 </head>
+
 <body>
 
-<div class="box">
-    <h2>💳 Pembayaran</h2>
-    <div class="price" id="price"></div>
-    <p>Silakan Scan QRIS untuk membayar</p>
-    <img src="qris.png">
-    <a id="btnWa" class="btn" target="_blank">Konfirmasi Pembayaran</a>
+<div class="container">
+  <h2>Konfirmasi Pembayaran</h2>
+
+  <div class="info-box">
+    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
+    <p><strong>Nama:</strong> <span id="nama" class="value"></span></p>
+    <p><strong>WhatsApp:</strong> <span id="whatsapp" class="value"></span></p>
+    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
+    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
+  </div>
+
+  <div class="qris-box">
+    <p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
+    <img src="qris.png" width="250" style="border-radius:10px;border:1px solid #ddd;">
+  </div>
+
+  <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
 </div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("orderData"));
-document.getElementById("price").innerHTML = data.price;
+const urlParams = new URLSearchParams(window.location.search);
 
-let msg = "";
+// Generate Order ID ROJAID-xxxxxx
+const randomNum = Math.floor(100000 + Math.random() * 900000);
+const orderId = `ROJAID-${randomNum}`;
 
-if(data.service==="followers"){
-    msg =
-`Halo admin, saya ingin konfirmasi pembayaran.
-Produk: Followers Instagram
-Jumlah: ${Number(data.followers).toLocaleString("id-ID")}
-Link Profil: ${data.link}
-Total Pembayaran: ${data.price}
+// Set ke tampilan
+document.getElementById("orderId").textContent = orderId;
+document.getElementById("nama").textContent = urlParams.get("nama");
+document.getElementById("whatsapp").textContent = urlParams.get("whatsapp");
+document.getElementById("produk").textContent = urlParams.get("produk");
+document.getElementById("harga").textContent = urlParams.get("harga");
 
-Mohon diproses ya min 🙏`;
+// Button WA confirm
+function kirimWA() {
+  const waNumber = "6282262642007"; 
+  const message =
+`Halo Admin, saya ingin konfirmasi pembayaran
+Order ID : ${orderId}
+Nama : ${urlParams.get("nama")}
+WhatsApp : ${urlParams.get("whatsapp")}
+Produk : ${urlParams.get("produk")}
+Total : ${urlParams.get("harga")}
+Mohon dicek ya.`;
+
+  window.open(
+    `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,
+    "_blank"
+  );
+
+  // kirim ke spreadsheet
+  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      orderId: orderId,
+      nama: urlParams.get("nama"),
+      whatsapp: urlParams.get("whatsapp"),
+      produk: urlParams.get("produk"),
+      harga: urlParams.get("harga")
+    })
+  });
 }
-
-if(data.service==="premium"){
-    msg =
-`Halo admin, saya ingin konfirmasi pembayaran.
-Produk App Premium
-Nomor WA: ${data.phone}
-Total Pembayaran: ${data.price}
-
-Mohon diproses ya min 🙏`;
-}
-
-document.getElementById("btnWa").href =
-"https://wa.me/6282262642007?text=" + encodeURIComponent(msg);
 </script>
-
 </body>
 </html>
