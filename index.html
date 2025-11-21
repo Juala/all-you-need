@@ -36,6 +36,9 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <select id="jumlah"></select>
 </div>
 
+<label id="labelUsername" class="hidden">Username / Link Profil:</label>
+<input type="text" id="username" placeholder="Masukkan username / link profil" class="hidden">
+
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
@@ -53,7 +56,6 @@ const harga = {
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
 
-  // List App Premium
   app_prem:{
       "Netflix 1 Bulan":40000,
       "Spotify Premium 1 Bulan":14000,
@@ -72,18 +74,28 @@ const productSelect = document.getElementById("product");
 const jumlahSelect = document.getElementById("jumlah");
 const jumlahBox = document.getElementById("jumlahBox");
 const priceDiv = document.getElementById("priceDisplay");
+const usernameInput = document.getElementById("username");
+const labelUsername = document.getElementById("labelUsername");
 
 productSelect.addEventListener("change", function(){
   const prod = this.value;
   jumlahSelect.innerHTML="";
   priceDiv.classList.add("hidden");
 
+  // tampilkan username hanya untuk followers & likes
+  if(prod === "followers_ig" || prod === "followers_tt" || prod === "likes_ig" || prod === "likes_tt"){
+    usernameInput.classList.remove("hidden");
+    labelUsername.classList.remove("hidden");
+  } else {
+    usernameInput.classList.add("hidden");
+    labelUsername.classList.add("hidden");
+  }
+
   if(prod==="app_prem"){
     jumlahBox.classList.remove("hidden");
     Object.keys(harga.app_prem).forEach(item=>{
       jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
     });
-    // tampilkan harga awal
     priceDiv.textContent="Total: Rp "+harga.app_prem[Object.keys(harga.app_prem)[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
 
@@ -107,11 +119,11 @@ productSelect.addEventListener("change", function(){
 // Submit form
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
-  const product = document.getElementById("product").value;
-  const jumlah = document.getElementById("jumlah").value;
+  const product = productSelect.value;
+  const jumlah = jumlahSelect.value;
   const phone = document.getElementById("phone").value;
-  
-  // Hitung harga total
+  const username = usernameInput.value;
+
   let totalHarga;
   if(product==="app_prem"){
     totalHarga = harga.app_prem[jumlah];
@@ -119,7 +131,6 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
     totalHarga = harga[product][jumlah];
   }
 
-  // Generate Order ID
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
   // Kirim ke spreadsheet
@@ -131,12 +142,13 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
       product: product,
       jumlah: jumlah,
       phone: phone,
+      username: username,
       harga: totalHarga
     })
   }).then(res => console.log("Data terkirim ke spreadsheet"));
 
-  // Redirect ke payment.html dengan data
-  window.location.href=`payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&harga=${encodeURIComponent(totalHarga)}`;
+  // Redirect ke payment.html
+  window.location.href=`payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&username=${encodeURIComponent(username)}&harga=${encodeURIComponent(totalHarga)}`;
 });
 </script>
 
