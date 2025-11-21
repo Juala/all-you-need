@@ -86,7 +86,7 @@ document.getElementById("orderId").innerText = "ID Pesanan: " + savedID;
 
 // Tombol Konfirmasi WhatsApp
 document.getElementById("payBtn").addEventListener("click", () => {
-  const waMessage = `Halo Admin, saya ingin konfirmasi pembayaran.\n\nID Pesanan: ${savedID}\nProduk: ${produk}\nJumlah: ${jumlah}\nTotal: Rp ${harga}\nProfil/Nomor: ${profil}`;
+  const waMessage = `Halo Mas, saya ingin konfirmasi pembayaran.\n\nID Pesanan: ${savedID}\nProduk: ${produk}\nJumlah: ${jumlah}\nTotal: Rp ${harga}\nProfil/Nomor: ${profil}`;
   window.location.href = `https://wa.me/6282262642007?text=${encodeURIComponent(waMessage)}`;
 });
 
