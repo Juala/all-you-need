@@ -27,6 +27,7 @@ button:hover { background:#005fcc; }
     <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
     <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
     <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
+    <p id="usernameRow" style="display:none;"><strong>Username / Link:</strong> <span id="username" class="value"></span></p>
     <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
     <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
   </div>
@@ -37,92 +38,69 @@ button:hover { background:#005fcc; }
   </div>
 
   <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
-  <button id="btnOrderAgain">Pesan Lagi</button>
+  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
 </div>
 
 <script>
-// Ambil data dari URL
 const urlParams = new URLSearchParams(window.location.search);
 let orderId = sessionStorage.getItem("orderId");
 
-// Generate Order ID jika belum ada di sessionStorage
+// Generate Order ID jika belum ada
 if(!orderId){
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   orderId = `ROJAID-${randomNum}`;
   sessionStorage.setItem("orderId", orderId);
 }
 
+// Ambil data
+const product = urlParams.get("product");
+const jumlah = urlParams.get("jumlah");
+const phone = urlParams.get("phone");
+const username = urlParams.get("username");
+const hargaTotal = urlParams.get("harga");
+
 // Set data ke tampilan
 document.getElementById("orderId").textContent = orderId;
-document.getElementById("produk").textContent = urlParams.get("product");
-document.getElementById("jumlah").textContent = urlParams.get("jumlah");
-document.getElementById("phone").textContent = urlParams.get("phone");
+document.getElementById("produk").textContent = product;
+document.getElementById("jumlah").textContent = jumlah;
+document.getElementById("phone").textContent = phone;
+document.getElementById("harga").textContent = "Rp " + Number(hargaTotal).toLocaleString("id-ID");
 
-// Tentukan harga
-const hargaList = {
-  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
-  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
-  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
-  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
-  app_prem:{
-      "Netflix 1 Bulan":40000,
-      "Spotify Premium 1 Bulan":14000,
-      "Gemini 1 Tahun + 2TB GDrive":35000,
-      "Amazon Prime 1 Tahun":7000,
-      "YouTube Premium 1 Bulan":10000,
-      "Capcut Premium 1 Bulan":20000,
-      "Gemini Premium 1 Tahun + 2TB":35000,
-      "GPT Premium 1 Bulan":30000,
-      "Canva Premium 1 Bulan":5000
-  }
-};
-
-let product = urlParams.get("product");
-let jumlah = urlParams.get("jumlah");
-let totalHarga = 0;
-
-if(product === "app_prem"){
-  totalHarga = hargaList.app_prem[jumlah] || 0;
-}else{
-  totalHarga = hargaList[product][jumlah] || 0;
+if(username && username.trim() !== ""){
+  document.getElementById("username").textContent = username;
+  document.getElementById("usernameRow").style.display = "block";
 }
 
-document.getElementById("harga").textContent = "Rp " + totalHarga.toLocaleString("id-ID");
-
-// Button WA confirm dan kirim ke spreadsheet
+// Kirim WA
 function kirimWA(){
   const waNumber = "6282262642007"; 
-  const message =
-`Halo Admin, saya ingin konfirmasi pembayaran
-Order ID: ${orderId}
-Produk: ${product}
-Jumlah: ${jumlah}
-Nomor WhatsApp: ${urlParams.get("phone")}
-Total: Rp ${totalHarga.toLocaleString("id-ID")}
-Mohon dicek ya.`;
+  let message = `Halo Mas, saya ingin konfirmasi pembayaran\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}`;
+  if(username && username.trim() !== "") message += `\nUsername / Link: ${username}`;
+  message += `\nNomor WhatsApp: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}\nMohon dicek ya.`;
 
   window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
 
-  // kirim ke spreadsheet via Web App
+  // Kirim ke spreadsheet
   fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
+    body: JSON.stringify({
       orderId: orderId,
       product: product,
       jumlah: jumlah,
-      phone: urlParams.get("phone"),
-      harga: totalHarga
+      username: username,
+      phone: phone,
+      harga: Number(hargaTotal)
     })
   });
 }
 
 // Tombol Pesan Lagi
-const btnOrderAgain = document.getElementById("btnOrderAgain");
-btnOrderAgain.addEventListener("click", function() {
-  sessionStorage.removeItem("orderId"); // agar ID baru saat pesan lagi
+function pesanLagi(){
+  sessionStorage.removeItem("orderId"); // hapus orderId agar baru saat pesan lagi
   window.location.href = "index.html";
-});
+}
 </script>
+
 </body>
 </html>
