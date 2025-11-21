@@ -1,28 +1,129 @@
-<h2>Silakan Lakukan Pembayaran</h2>
-<p id="orderDetail"></p>
-<img src="qris.png" width="300">
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembayaran Pesanan</title>
 
-<button id="konfirmasiBtn">Konfirmasi via WhatsApp</button>
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background: #f4f6fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .card {
+    background: white;
+    width: 420px;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  }
+
+  h2 {
+    text-align: center;
+    color: #003087;
+    margin-bottom: 15px;
+  }
+
+  .detail {
+    background: #eef2ff;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-size: 15px;
+  }
+
+  .qr-box {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  img {
+    width: 260px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    border: none;
+    background: #28a745;
+    color: white;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #1e8a3f;
+  }
+
+  .back {
+    background: #0066ff;
+    margin-top: 10px;
+  }
+
+  .back:hover {
+    background: #004fcc;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="card">
+  <h2>💳 Pembayaran Pesanan</h2>
+
+  <div class="detail">
+    <p><b>Produk:</b> <span id="productText"></span></p>
+    <p><b>Paket:</b> <span id="paketText"></span></p>
+    <p><b>Profil / No Telp:</b> <span id="dataText"></span></p>
+  </div>
+
+  <div class="qr-box">
+    <p>Silahkan Scan QRIS di bawah ini untuk pembayaran</p>
+    <img src="qris.png" alt="QRIS Pembayaran">
+  </div>
+
+  <button id="confirmBtn">Konfirmasi via WhatsApp</button>
+  <button class="back" onclick="window.location.href='index.html'">Kembali ke Beranda</button>
+</div>
 
 <script>
-const query = new URLSearchParams(window.location.search);
-const product = query.get("product");
-const jumlah = query.get("jumlah");
-const profil = query.get("profil");
-const phone = query.get("phone");
+  // Ambil data dari URL
+  const params = new URLSearchParams(window.location.search);
+  const product = params.get("product");
+  const paket = params.get("paket");
+  const profil = params.get("profil");
+  const phone = params.get("phone");
 
-document.getElementById("orderDetail").innerHTML = `
-<b>Produk :</b> ${product}<br>
-${jumlah ? `<b>Jumlah Followers:</b> ${jumlah}<br>` : ""}
-${profil ? `<b>Profil:</b> ${profil}<br>` : ""}
-${phone ? `<b>No Telepon:</b> ${phone}<br>` : ""}
-`;
+  document.getElementById("productText").innerText = product;
+  document.getElementById("paketText").innerText = paket;
+  document.getElementById("dataText").innerText = profil || phone;
 
-document.getElementById("konfirmasiBtn").addEventListener("click", function() {
-  const message = encodeURIComponent(
-    `Saya sudah melakukan pembayaran\nProduk: ${product}\nJumlah: ${jumlah}\nProfil: ${profil}\nNo HP: ${phone}`
-  );
+  // Tombol konfirmasi WA
+  document.getElementById("confirmBtn").addEventListener("click", function () {
+    const message =
+      `Halo Admin, saya sudah melakukan pembayaran,\n\n` +
+      `*Detail Pesanan:*\n` +
+      `Produk : ${product}\n` +
+      `Paket : ${paket}\n` +
+      `Data : ${profil || phone}\n` +
+      `Status : Sudah bayar`;
 
-  window.location.href = `https://wa.me/6282262642007?text=${message}`;
-});
+    const waUrl = `https://wa.me/6282262642007?text=${encodeURIComponent(message)}`;
+    window.location.href = waUrl;
+  });
+
 </script>
+
+</body>
+</html>
