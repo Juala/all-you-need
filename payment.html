@@ -37,7 +37,7 @@ button:hover { background:#005fcc; }
   </div>
 
   <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
-  <button id="btnOrderAgain" onclick="window.location.href='index.html'">Pesan Lagi</button>
+  <button id="btnOrderAgain">Pesan Lagi</button>
 </div>
 
 <script>
@@ -89,7 +89,7 @@ if(product === "app_prem"){
 
 document.getElementById("harga").textContent = "Rp " + totalHarga.toLocaleString("id-ID");
 
-// Button WA confirm
+// Button WA confirm dan kirim ke spreadsheet
 function kirimWA(){
   const waNumber = "6282262642007"; 
   const message =
@@ -103,7 +103,7 @@ Mohon dicek ya.`;
 
   window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
 
-  // kirim ke spreadsheet
+  // kirim ke spreadsheet via Web App
   fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -116,6 +116,13 @@ Mohon dicek ya.`;
     })
   });
 }
+
+// Tombol Pesan Lagi
+const btnOrderAgain = document.getElementById("btnOrderAgain");
+btnOrderAgain.addEventListener("click", function() {
+  sessionStorage.removeItem("orderId"); // agar ID baru saat pesan lagi
+  window.location.href = "index.html";
+});
 </script>
 </body>
 </html>
