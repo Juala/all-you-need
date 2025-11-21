@@ -1,24 +1,187 @@
-<form id="orderForm">
-  <label>Jenis Produk:</label>
-  <select id="product" required>
-    <option value="followers">Followers</option>
-    <option value="app-prem">App Premium</option>
-  </select>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Layanan</title>
 
-  <div id="followersInput" style="display:none">
-    <label>Jumlah Followers:</label>
-    <input type="number" id="jumlah" placeholder="Masukkan jumlah followers" />
-    <label>Link Profil:</label>
-    <input type="text" id="profil" placeholder="Masukkan link profil" />
+<style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f4f6fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #222;
+      margin-bottom: 30px;
+    }
+
+    .flex {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      width: 450px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #003087;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    ul li {
+      margin: 6px 0;
+      font-size: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 4px;
+    }
+
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0066ff;
+      border: none;
+      color: white;
+      font-size: 17px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #004fcc;
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>🛒 Pemesanan Layanan Profesional</h1>
+
+<div class="flex">
+
+  <div class="card">
+    <h2>Followers & Likes</h2>
+    <ul>
+      <b>Followers Instagram</b>
+      <li>100 - Rp 11.000</li>
+      <li>200 - Rp 22.000</li>
+      <li>300 - Rp 33.000</li>
+      <li>400 - Rp 44.000</li>
+      <li>500 - Rp 55.000</li>
+      <li>1.000 - Rp 110.000</li>
+      <li>2.000 - Rp 220.000</li>
+      <li>5.000 - Rp 550.000</li>
+      <li>10.000 - Rp 1.100.000</li>
+      <br>
+      <b>Followers TikTok</b>
+      <li>100 - Rp 10.000</li>
+      <li>200 - Rp 20.000</li>
+      <li>300 - Rp 30.000</li>
+      <li>400 - Rp 40.000</li>
+      <li>500 - Rp 50.000</li>
+      <li>1.000 - Rp 100.000</li>
+      <li>2.000 - Rp 200.000</li>
+      <li>5.000 - Rp 500.000</li>
+      <li>10.000 - Rp 1.000.000</li>
+      <br>
+      <b>Like Instagram</b>
+      <li>100 - Rp 5.000</li>
+      <li>200 - Rp 10.000</li>
+      <li>300 - Rp 15.000</li>
+      <li>400 - Rp 20.000</li>
+      <li>500 - Rp 25.000</li>
+      <li>1.000 - Rp 50.000</li>
+      <li>2.000 - Rp 100.000</li>
+      <li>5.000 - Rp 250.000</li>
+      <li>10.000 - Rp 500.000</li>
+    </ul>
   </div>
 
-  <div id="appInput" style="display:none">
-    <label>Nomor Telepon:</label>
-    <input type="text" id="phone" placeholder="Masukkan nomor telepon" />
+  <div class="card">
+    <h2>App Premium</h2>
+    <ul>
+      <li>Netflix 1 Bulan - Rp 40.000</li>
+      <li>Spotify Premium 1 Bulan - Rp 14.000</li>
+      <li>Gemini 1 Tahun + 2TB GDrive - Rp 35.000</li>
+      <li>AM Premium 1 Tahun - Rp 7.000</li>
+      <li>YouTube Premium 1 Bulan - Rp 10.000</li>
+      <li>CapCut Premium 1 Bulan - Rp 20.000</li>
+      <li>Gemini Premium 1 Tahun - Rp 35.000</li>
+      <li>GPT Premium 1 Bulan - Rp 30.000</li>
+      <li>Canva Premium 1 Bulan - Rp 5.000</li>
+    </ul>
   </div>
 
-  <button type="submit">Order Sekarang</button>
-</form>
+</div>
+
+<br><br>
+
+<div class="card">
+  <h2>Form Pemesanan</h2>
+  <form id="orderForm">
+
+    <label>Pilih Layanan:</label>
+    <select id="product" required>
+      <option disabled selected>Pilih Produk</option>
+      <option value="followers">Followers / Likes</option>
+      <option value="app-prem">App Premium</option>
+    </select>
+
+    <label>Nama Paket:</label>
+    <input type="text" id="paket" placeholder="Contoh: 100 Followers IG / Netflix 1 Bulan" required>
+
+    <div id="followersInput" style="display:none">
+      <label>Link Profil / Username:</label>
+      <input type="text" id="profil" placeholder="Masukkan link profil" />
+    </div>
+
+    <div id="appInput" style="display:none">
+      <label>Nomor Telepon:</label>
+      <input type="text" id="phone" placeholder="Masukkan nomor telepon" />
+    </div>
+
+    <button type="submit">Order Sekarang</button>
+  </form>
+</div>
+
+</div>
 
 <script>
 document.getElementById("product").addEventListener("change", function () {
@@ -35,12 +198,14 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
   const product = document.getElementById("product").value;
-  const jumlah = document.getElementById("jumlah").value;
+  const paket = document.getElementById("paket").value;
   const profil = document.getElementById("profil").value;
   const phone = document.getElementById("phone").value;
 
-  // pindah halaman dengan membawa data
-  const url = `payment.html?product=${product}&jumlah=${jumlah}&profil=${profil}&phone=${phone}`;
+  const url = `payment.html?product=${product}&paket=${paket}&profil=${profil}&phone=${phone}`;
   window.location.href = url;
 });
 </script>
+
+</body>
+</html>
