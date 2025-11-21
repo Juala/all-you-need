@@ -3,71 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment</title>
+<title>Payment | ROJA STORE</title>
 <style>
-body { font-family: Arial, sans-serif; background: #f1f3f8; padding: 20px; }
-.box { background: white; padding: 20px; border-radius: 10px; max-width: 450px; margin: auto; }
-input, button {
-  width: 100%; padding: 12px; margin-top: 10px;
-  border-radius: 8px; border: 1px solid #ccc;
-}
-button { background: #28a745; color: white; font-size: 16px; cursor: pointer; }
-button:hover { background: #1e7e34; }
+body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
+.container { max-width:500px; margin:50px auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2 { text-align:center; font-weight:700; color:#2d2d2d; margin-bottom:15px;}
+.info-box { margin-top:20px; padding:15px; border-radius:10px; background:#eef3ff; border:1px solid #cdd8ff; }
+p { font-size:15px; margin:6px 0; }
+.value { font-weight:bold; color:#004aad; }
+.qris-box { margin-top:20px; text-align:center; }
+.qris-box img { border-radius:10px; border:1px solid #ddd; width:250px; }
+button { background:#007bff; width:100%; padding:14px; color:white; border:none; border-radius:10px; font-size:17px; font-weight:600; cursor:pointer; margin-top:18px; }
+button:hover { background:#005fcc; }
+#btnOrderAgain { background:#28a745; margin-top:10px; }
 </style>
 </head>
 <body>
 
-<div class="box">
-<h2>Konfirmasi Pembayaran</h2>
+<div class="container">
+  <h2>Konfirmasi Pembayaran</h2>
 
-<p>Produk: <span id="product"></span></p>
-<p>Harga: Rp <span id="price"></span></p>
+  <div class="info-box">
+    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
+    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
+    <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
+    <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
+    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
+  </div>
 
-<label>Nomor WhatsApp Pembeli</label>
-<input type="number" id="phone" placeholder="Contoh: 6285xxxxxxxx" required>
+  <div class="qris-box">
+    <p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
+    <img src="qris.png" alt="QRIS">
+  </div>
 
-<button onclick="sendOrder()">Konfirmasi ke Admin</button>
+  <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
+  <button id="btnOrderAgain" onclick="window.location.href='index.html'">Pesan Lagi</button>
 </div>
 
 <script>
-// Get selected product data from query URL
-const query = new URLSearchParams(window.location.search);
-const product = query.get("product");
-const price = query.get("price");
+// Ambil data dari URL
+const urlParams = new URLSearchParams(window.location.search);
+let orderId = sessionStorage.getItem("orderId");
 
-document.getElementById("product").innerText = product;
-document.getElementById("price").innerText = price;
+// Generate Order ID jika belum ada di sessionStorage
+if(!orderId){
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  orderId = `ROJAID-${randomNum}`;
+  sessionStorage.setItem("orderId", orderId);
+}
 
-// SEND DATA + OPEN WHATSAPP
-function sendOrder() {
-  const phone = document.getElementById("phone").value;
-  if (phone === "") { alert("Nomor WhatsApp wajib diisi!"); return; }
+// Set data ke tampilan
+document.getElementById("orderId").textContent = orderId;
+document.getElementById("produk").textContent = urlParams.get("product");
+document.getElementById("jumlah").textContent = urlParams.get("jumlah");
+document.getElementById("phone").textContent = urlParams.get("phone");
 
-  // SEND DATA TO GOOGLE SHEETS
+// Tentukan harga
+const hargaList = {
+  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+  app_prem:{
+      "Netflix 1 Bulan":40000,
+      "Spotify Premium 1 Bulan":14000,
+      "Gemini 1 Tahun + 2TB GDrive":35000,
+      "Amazon Prime 1 Tahun":7000,
+      "YouTube Premium 1 Bulan":10000,
+      "Capcut Premium 1 Bulan":20000,
+      "Gemini Premium 1 Tahun + 2TB":35000,
+      "GPT Premium 1 Bulan":30000,
+      "Canva Premium 1 Bulan":5000
+  }
+};
+
+let product = urlParams.get("product");
+let jumlah = urlParams.get("jumlah");
+let totalHarga = 0;
+
+if(product === "app_prem"){
+  totalHarga = hargaList.app_prem[jumlah] || 0;
+}else{
+  totalHarga = hargaList[product][jumlah] || 0;
+}
+
+document.getElementById("harga").textContent = "Rp " + totalHarga.toLocaleString("id-ID");
+
+// Button WA confirm
+function kirimWA(){
+  const waNumber = "6282262642007"; 
+  const message =
+`Halo Admin, saya ingin konfirmasi pembayaran
+Order ID: ${orderId}
+Produk: ${product}
+Jumlah: ${jumlah}
+Nomor WhatsApp: ${urlParams.get("phone")}
+Total: Rp ${totalHarga.toLocaleString("id-ID")}
+Mohon dicek ya.`;
+
+  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
+
+  // kirim ke spreadsheet
   fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      orderId: orderId,
       product: product,
-      price: price,
-      phone: phone,
-      timestamp: new Date().toLocaleString("id-ID")
+      jumlah: jumlah,
+      phone: urlParams.get("phone"),
+      harga: totalHarga
     })
   });
-
-  // OPEN WHATSAPP ADMIN WITH MESSAGE
-  const message =
-`Halo Mas, saya sedang melakukan pesanan:
-Produk: ${product}
-Harga: Rp ${price}
-Nomor WA saya: ${phone}
-
-Mohon segera diproses.`;
-
-  window.location.href = `https://wa.me/6282262642007?text=${encodeURIComponent(message)}`;
 }
 </script>
-
 </body>
 </html>
