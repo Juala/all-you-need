@@ -22,8 +22,8 @@ button:hover {background:#005fcc;}
 
 <form id="orderForm">
 
-  <label>Nomor WhatsApp:</label>
-  <input type="text" id="whatsapp" required />
+  <label>Nama Panggilan:</label>
+  <input type="text" id="nama" required />
 
   <label>Pilih Produk:</label>
   <select id="produk" required>
@@ -51,15 +51,12 @@ button:hover {background:#005fcc;}
       <option value="" disabled selected>-- Pilih Layanan --</option>
       <option value="Netflix 1 Bulan" data-harga="40000">Netflix 1 Bulan (40K)</option>
       <option value="Spotify Premium 1 Bulan" data-harga="14000">Spotify Premium (14K)</option>
-      <option value="Gemini 1 Tahun + 2TB" data-harga="35000">Gemini 1 Tahun + 2TB (35K)</option>
+      <option value="Gemini 1 Tahun 2TB" data-harga="35000">Gemini 1 Tahun + 2TB (35K)</option>
       <option value="YT Premium 1 Bulan" data-harga="10000">YT Premium (10K)</option>
       <option value="Capcut Premium 1 Bulan" data-harga="20000">Capcut Premium (20K)</option>
       <option value="GPT Premium 1 Bulan" data-harga="30000">GPT Premium (30K)</option>
       <option value="Canva Premium 1 Bulan" data-harga="5000">Canva Premium (5K)</option>
     </select>
-
-    <label>Nomor Telepon:</label>
-    <input type="text" id="phone" placeholder="Masukkan nomor telepon">
   </div>
 
   <div class="price-box" id="priceBox">
@@ -74,26 +71,17 @@ button:hover {background:#005fcc;}
 const priceList = {
   "followers-ig": {100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   "followers-tt": {100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
-  "likes-ig": {100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
-  "likes-tt": {100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000}
+  "likes-ig":    {100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+  "likes-tt":    {100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000}
 };
 
 document.getElementById("produk").addEventListener("change", function () {
   const prod = this.value;
-
   document.getElementById("priceBox").style.display = "none";
 
   if (prod.includes("followers") || prod.includes("likes")) {
     document.getElementById("jumlahBox").style.display = "block";
     document.getElementById("appBox").style.display = "none";
-
-    let jumlahSelect = document.getElementById("jumlah");
-    jumlahSelect.innerHTML = `<option value="" disabled selected>-- Pilih Jumlah --</option>`;
-
-    Object.keys(priceList[prod]).forEach(num => {
-      jumlahSelect.innerHTML += `<option value="${num}">${num}</option>`;
-    });
-
   } else {
     document.getElementById("jumlahBox").style.display = "none";
     document.getElementById("appBox").style.display = "block";
@@ -116,15 +104,8 @@ document.getElementById("appList").addEventListener("change", function(){
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
-  const whatsapp = document.getElementById("whatsapp").value;
-  const produk = document.getElementById("produk").value;
-  const jumlah = document.getElementById("jumlah").value;
-  const profil = document.getElementById("profil").value;
-  const harga = document.getElementById("harga").textContent;
-  const app = document.getElementById("appList").value;
-  const phone = document.getElementById("phone").value;
-
-  window.location.href = `payment.html?whatsapp=${whatsapp}&produk=${produk}&jumlah=${jumlah}&profil=${profil}&harga=${harga}&app=${app}&phone=${phone}`;
+  window.location.href =
+    `payment.html?nama=${document.getElementById("nama").value}&produk=${document.getElementById("produk").value}&jumlah=${document.getElementById("jumlah").value}&profil=${document.getElementById("profil").value}&harga=${document.getElementById("harga").textContent}&app=${document.getElementById("appList").value}`;
 });
 </script>
 </body>
