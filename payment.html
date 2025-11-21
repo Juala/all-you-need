@@ -3,88 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment | ROJA STORE</title>
+<title>Konfirmasi Pembayaran - ROJA STORE</title>
 
 <style>
-body {font-family:Poppins,Arial,sans-serif;background:#f4f7fc;margin:0;padding:0;}
-.container {max-width:500px;margin:50px auto;background:white;padding:25px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-h2 {text-align:center;font-weight:700;color:#2d2d2d;margin-bottom:15px;}
-.info-box {margin-top:20px;padding:15px;border-radius:10px;background:#eef3ff;border:1px solid #cdd8ff;}
-p {font-size:15px;margin:6px 0;}
-.value {font-weight:700;color:#004aad;}
-.qris-box {margin-top:20px;text-align:center;}
-button {background:#007bff;width:100%;padding:14px;color:white;border:none;border-radius:10px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;}
-button:hover {background:#005fcc;}
+body {font-family: Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0;}
+.container {
+  max-width:600px; margin:50px auto; background:white;
+  padding:25px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+h2 {text-align:center; font-weight:700; margin-bottom:20px; color:#222;}
+.order-id {text-align:center; font-weight:700; font-size:18px; margin-bottom:10px; color:#004aad;}
+.table {width:100%; margin-top:15px; border-collapse:collapse;}
+.table td {padding:10px 5px; border-bottom:1px solid #eee;}
+.btn {
+  width:100%; margin-top:18px; padding:13px; border:none;
+  background:#007bff; color:white; font-size:18px; font-weight:700;
+  border-radius:10px; cursor:pointer;
+}
+.btn:hover {background:#005fcc;}
+.btn-second {
+  width:100%; margin-top:10px; padding:13px; display:block; text-align:center;
+  background:#333; font-size:17px; font-weight:700; color:white; text-decoration:none;
+  border-radius:10px;
+}
+.note {text-align:center; margin-top:15px; font-size:14px; color:#777;}
 </style>
 </head>
 
 <body>
 <div class="container">
-  <h2>Konfirmasi Pembayaran</h2>
+<h2>Konfirmasi Pembayaran</h2>
 
-  <div class="info-box">
-    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
-    <p><strong>Nama Panggilan:</strong> <span id="nama" class="value"></span></p>
-    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
-    <p><strong>Jumlah / Layanan:</strong> <span id="jumlah" class="value"></span></p>
-    <p><strong>Profil / Username:</strong> <span id="profil" class="value"></span></p>
-    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
-  </div>
+<p id="orderId" class="order-id"></p>
 
-  <div class="qris-box">
-    <p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
-    <img src="qris.png" width="250" style="border-radius:10px;border:1px solid #ddd;">
-  </div>
+<table class="table">
+<tr><td>Produk</td><td id="produk"></td></tr>
+<tr><td>Link Profil / Nomor</td><td id="profil"></td></tr>
+<tr><td>Jumlah</td><td id="jumlah"></td></tr>
+<tr><td>Total Pembayaran</td><td id="harga"></td></tr>
+</table>
 
-  <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
+<button id="payBtn" class="btn">Konfirmasi Pembayaran via WhatsApp</button>
+
+<a href="index.html" id="newOrder" class="btn-second">Pesan Lagi</a>
+
+<p class="note">*Gunakan ID Pesanan ketika konfirmasi pembayaran</p>
 </div>
 
+
 <script>
-const urlParams = new URLSearchParams(window.location.search);
+// --- Ambil parameter URL ---
+const params = new URLSearchParams(window.location.search);
+const produk = params.get("produk");
+const profil = params.get("profil") || params.get("phone");
+const jumlah = params.get("jumlah") || "1";
+const harga = params.get("harga");
 
-// Generate ROJAID-xxxxxx
-const randomNum = Math.floor(100000 + Math.random() * 900000);
-const orderId = `ROJAID-${randomNum}`;
+// tampilkan ke UI
+document.getElementById("produk").innerText = produk;
+document.getElementById("profil").innerText = profil;
+document.getElementById("jumlah").innerText = jumlah;
+document.getElementById("harga").innerText = "Rp " + harga;
 
-// Show data
-document.getElementById("orderId").textContent = orderId;
-document.getElementById("nama").textContent   = urlParams.get("nama");
-document.getElementById("produk").textContent = urlParams.get("produk");
-document.getElementById("jumlah").textContent = urlParams.get("jumlah") || urlParams.get("app");
-document.getElementById("profil").textContent = urlParams.get("profil") || "-";
-document.getElementById("harga").textContent  = urlParams.get("harga");
-
-// Send WA
-function kirimWA() {
-  const waNumber = "6282262642007";
-  const message =
-`Halo Mas, saya ingin konfirmasi pembayaran
-
-Order ID : ${orderId}
-Nama : ${urlParams.get("nama")}
-Produk : ${urlParams.get("produk")}
-Jumlah / Layanan : ${urlParams.get("jumlah") || urlParams.get("app")}
-Profil / Username : ${urlParams.get("profil")}
-Total : Rp ${urlParams.get("harga")}
-
-Mohon segerah dicek ya.`;
-
-  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, "_blank");
-
-  // SEND TO GOOGLE SHEETS
-  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      orderId: orderId,
-      nama: urlParams.get("nama"),
-      produk: urlParams.get("produk"),
-      jumlah: urlParams.get("jumlah") || urlParams.get("app"),
-      profil: urlParams.get("profil"),
-      harga: urlParams.get("harga")
-    })
-  });
+// ---- Generate Order ID ----
+function generateOrderId() {
+  return "ROJAID-" + Math.floor(100000 + Math.random() * 900000);
 }
+
+let savedID = localStorage.getItem("orderId");
+if (!savedID) {
+  savedID = generateOrderId();
+  localStorage.setItem("orderId", savedID);
+}
+
+document.getElementById("orderId").innerText = "ID Pesanan: " + savedID;
+
+// ---- Tombol Konfirmasi WhatsApp ----
+document.getElementById("payBtn").addEventListener("click", () => {
+  const waMessage = `Halo Admin, saya ingin konfirmasi pembayaran.\n\nID Pesanan: ${savedID}\nProduk: ${produk}\nJumlah: ${jumlah}\nTotal: Rp ${harga}\nProfil/Nomor: ${profil}`;
+  window.location.href = `https://wa.me/6282262642007?text=${encodeURIComponent(waMessage)}`;
+});
+
+// ---- Reset ID ketika klik Pesan Lagi ----
+document.getElementById("newOrder").addEventListener("click", () => {
+  localStorage.removeItem("orderId");
+});
 </script>
+
 </body>
 </html>
