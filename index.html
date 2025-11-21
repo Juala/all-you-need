@@ -36,9 +36,6 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <select id="jumlah"></select>
 </div>
 
-<label id="labelAkun" class="hidden">Username / Link Profil:</label>
-<input type="text" id="username" placeholder="Masukkan username / link profil" class="hidden">
-
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
@@ -61,7 +58,7 @@ const harga = {
       "Netflix 1 Bulan":40000,
       "Spotify Premium 1 Bulan":14000,
       "Gemini 1 Tahun + 2TB GDrive":35000,
-      "Amazon Prime 1 Tahun":7000,
+      "Alight Motion Premium 1 Tahun":7000,
       "YouTube Premium 1 Bulan":10000,
       "Capcut Premium 1 Bulan":20000,
       "Gemini Premium 1 Tahun + 2TB":35000,
@@ -70,44 +67,54 @@ const harga = {
   }
 };
 
-document.getElementById("product").addEventListener("change",function(){
-  const prod=this.value;
-  const jumlahSelect=document.getElementById("jumlah");
-  const box=document.getElementById("jumlahBox");
-  const userInput=document.getElementById("username");
-  const priceDiv=document.getElementById("priceDisplay");
+const productSelect = document.getElementById("product");
+const jumlahSelect = document.getElementById("jumlah");
+const jumlahBox = document.getElementById("jumlahBox");
+const priceDiv = document.getElementById("priceDisplay");
 
+productSelect.addEventListener("change", function(){
+  const prod = this.value;
   jumlahSelect.innerHTML="";
   priceDiv.classList.add("hidden");
 
   if(prod==="app_prem"){
-    userInput.classList.remove("hidden");
-    box.classList.remove("hidden");
-    Object.keys(harga.app_prem).forEach(j=>{
-      jumlahSelect.innerHTML+=`<option value="${j}">${j}</option>`;
+    // App Premium
+    jumlahBox.classList.remove("hidden");
+    Object.keys(harga.app_prem).forEach(item=>{
+      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
     });
+    // tampilkan harga awal
     priceDiv.textContent="Total: Rp "+harga.app_prem[Object.keys(harga.app_prem)[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
-    jumlahSelect.addEventListener("change",()=>priceDiv.textContent="Total: Rp "+harga.app_prem[jumlahSelect.value].toLocaleString());
-  } 
-  else {
-    userInput.classList.remove("hidden");
-    box.classList.remove("hidden");
-    Object.keys(harga[prod]).forEach(j=>jumlahSelect.innerHTML+=`<option value="${j}">${j}</option>`);
-    priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString();
+
+    jumlahSelect.addEventListener("change", ()=>{
+      priceDiv.textContent="Total: Rp "+harga.app_prem[jumlahSelect.value].toLocaleString();
+    });
+
+  } else {
+    // Followers / Likes
+    jumlahBox.classList.remove("hidden");
+    Object.keys(harga[prod]).forEach(item=>{
+      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+    });
+    // tampilkan harga awal
+    priceDiv.textContent="Total: Rp "+harga[prod][Object.keys(harga[prod])[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
-    jumlahSelect.addEventListener("change",()=>priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString());
+
+    jumlahSelect.addEventListener("change", ()=>{
+      priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString();
+    });
   }
 });
 
-document.getElementById("orderForm").addEventListener("submit",function(e){
+// Submit form
+document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
-  const product=document.getElementById("product").value;
-  const jumlah=document.getElementById("jumlah").value;
-  const username=document.getElementById("username").value;
-  const phone=document.getElementById("phone").value;
+  const product = document.getElementById("product").value;
+  const jumlah = document.getElementById("jumlah").value;
+  const phone = document.getElementById("phone").value;
 
-  window.location.href=`payment.html?product=${product}&jumlah=${jumlah}&username=${username}&phone=${phone}`;
+  window.location.href=`payment.html?product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}`;
 });
 </script>
 
