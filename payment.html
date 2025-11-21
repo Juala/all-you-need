@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembayaran QRIS</title>
+<style>
+body { font-family: Arial; background:#f2f3f5; padding:20px; }
+.container { max-width:450px; margin:auto; background:white; padding:20px; border-radius:12px; text-align:center; }
+img { width:100%; border-radius:12px; margin-top:15px; }
+button { width:100%; padding:14px; margin-top:15px; background:#28a745; color:white; font-size:18px; border:none; border-radius:10px; cursor:pointer; }
+button:hover { background:#1e7e34; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Silahkan Lakukan Pembayaran</h2>
+  <p>Scan QRIS berikut untuk melanjutkan pembayaran</p>
+
+  <img src="qris.png" alt="QRIS Pembayaran">
+
+  <button id="whatsappBtn">Konfirmasi Pembayaran via WhatsApp</button>
+</div>
+
+<script>
+const query = new URLSearchParams(window.location.search);
+const id = query.get("id");
+const produk = query.get("produk");
+const jumlah = query.get("jumlah");
+const profil = query.get("profil");
+const nomor = query.get("nomor");
+
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  window.location.href =
+  `https://wa.me/6282262642007?text=Halo%20admin,%20saya%20sudah%20membayar.%0AID%20Pembayaran:%20${id}%0AProduk:%20${produk}%0AJumlah:%20${jumlah}%0AData:%20${profil || nomor}`;
+});
+</script>
+
+</body>
+</html>
