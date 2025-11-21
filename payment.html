@@ -3,126 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pembayaran Pesanan</title>
+<title>Pembayaran</title>
 
 <style>
-  body {
-    font-family: "Poppins", sans-serif;
-    background: #f4f6fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-  }
-
-  .card {
-    background: white;
-    width: 420px;
-    padding: 30px;
-    border-radius: 18px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  }
-
-  h2 {
-    text-align: center;
-    color: #003087;
-    margin-bottom: 15px;
-  }
-
-  .detail {
-    background: #eef2ff;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    font-size: 15px;
-  }
-
-  .qr-box {
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  img {
-    width: 260px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 15px;
-    border: none;
-    background: #28a745;
-    color: white;
-    font-size: 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-
-  button:hover {
-    background: #1e8a3f;
-  }
-
-  .back {
-    background: #0066ff;
-    margin-top: 10px;
-  }
-
-  .back:hover {
-    background: #004fcc;
-  }
+    body { background:#0d0e11; color:#fff; font-family:"Poppins", sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .box {
+        background:linear-gradient(145deg,#1a1c20,#111315);
+        padding:30px; width:420px;
+        border-radius:20px; text-align:center;
+        box-shadow:0 0 20px rgba(0,0,0,0.4);
+        border:1px solid #2b2d32;
+    }
+    h2 { font-size:26px; font-weight:700; margin-bottom:15px;}
+    img { width:270px; border-radius:14px; margin-top:10px; }
+    .price { font-size:26px; font-weight:700; margin-top:12px; }
+    .btn {
+        background:#25d366; color:#fff; text-decoration:none;
+        padding:14px; display:block; margin-top:25px;
+        border-radius:12px; font-size:20px; font-weight:600;
+        transition:.3s;
+    }
+    .btn:hover { background:#1ea654; }
 </style>
-
 </head>
+
 <body>
-
-<div class="card">
-  <h2>💳 Pembayaran Pesanan</h2>
-
-  <div class="detail">
-    <p><b>Produk:</b> <span id="productText"></span></p>
-    <p><b>Paket:</b> <span id="paketText"></span></p>
-    <p><b>Profil / No Telp:</b> <span id="dataText"></span></p>
-  </div>
-
-  <div class="qr-box">
-    <p>Silahkan Scan QRIS di bawah ini untuk pembayaran</p>
-    <img src="qris.png" alt="QRIS Pembayaran">
-  </div>
-
-  <button id="confirmBtn">Konfirmasi via WhatsApp</button>
-  <button class="back" onclick="window.location.href='index.html'">Kembali ke Beranda</button>
+<div class="box">
+    <h2>💳 Pembayaran</h2>
+    <div class="price" id="price"></div>
+    <p>Silakan Scan QRIS untuk melakukan pembayaran</p>
+    <img src="qris.png">
+    <a id="btnWa" class="btn" target="_blank">Konfirmasi via WhatsApp</a>
 </div>
 
 <script>
-  // Ambil data dari URL
-  const params = new URLSearchParams(window.location.search);
-  const product = params.get("product");
-  const paket = params.get("paket");
-  const profil = params.get("profil");
-  const phone = params.get("phone");
+let data = JSON.parse(localStorage.getItem("orderData"));
+document.getElementById("price").textContent =
+    "Total: Rp " + Number(data.price).toLocaleString("id-ID");
 
-  document.getElementById("productText").innerText = product;
-  document.getElementById("paketText").innerText = paket;
-  document.getElementById("dataText").innerText = profil || phone;
+let message = `Halo admin, saya ingin konfirmasi pembayaran%0A%0A
+Produk: ${data.service}%0A
+Followers: ${data.followers}%0A
+Link: ${data.link}%0A
+WA: ${data.phone}%0A
+Total: Rp ${data.price}`;
 
-  // Tombol konfirmasi WA
-  document.getElementById("confirmBtn").addEventListener("click", function () {
-    const message =
-      `Halo Admin, saya sudah melakukan pembayaran,\n\n` +
-      `*Detail Pesanan:*\n` +
-      `Produk : ${product}\n` +
-      `Paket : ${paket}\n` +
-      `Data : ${profil || phone}\n` +
-      `Status : Sudah bayar`;
-
-    const waUrl = `https://wa.me/6282262642007?text=${encodeURIComponent(message)}`;
-    window.location.href = waUrl;
-  });
-
+document.getElementById("btnWa").href =
+    "https://wa.me/6282262642007?text=" + message;
 </script>
 
 </body>
