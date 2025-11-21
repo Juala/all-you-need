@@ -4,207 +4,93 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Layanan</title>
-
 <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #f4f6fa;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 30px;
-    }
-
-    h1 {
-      text-align: center;
-      color: #222;
-      margin-bottom: 30px;
-    }
-
-    .flex {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 15px;
-      width: 450px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 15px;
-      color: #003087;
-    }
-
-    ul {
-      padding: 0;
-      list-style: none;
-    }
-
-    ul li {
-      margin: 6px 0;
-      font-size: 15px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 4px;
-    }
-
-    label {
-      margin-top: 10px;
-      display: block;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-top: 5px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #0066ff;
-      border: none;
-      color: white;
-      font-size: 17px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #004fcc;
-    }
+    body { font-family: Arial, sans-serif; background:#f4f6f9; padding:20px; }
+    .container { background:#fff; padding:25px; max-width:450px; margin:auto; border-radius:15px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align:center; }
+    label { font-weight:bold; margin-top:15px; display:block; }
+    select, input { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:10px;}
+    .price-box { margin-top:15px; padding:15px; background:#e9f5ff; border-radius:10px; display:none; font-size:18px; }
+    button { width:100%; margin-top:20px; padding:12px; background:#007bff; border:none; color:#fff; font-size:18px; border-radius:10px; cursor:pointer; }
+    button:hover { background:#005fcc; }
 </style>
 </head>
-
 <body>
+
 <div class="container">
-<h1>🛒 Pemesanan Layanan Profesional</h1>
+    <h2>Order Layanan</h2>
 
-<div class="flex">
-
-  <div class="card">
-    <h2>Followers & Likes</h2>
-    <ul>
-      <b>Followers Instagram</b>
-      <li>100 - Rp 11.000</li>
-      <li>200 - Rp 22.000</li>
-      <li>300 - Rp 33.000</li>
-      <li>400 - Rp 44.000</li>
-      <li>500 - Rp 55.000</li>
-      <li>1.000 - Rp 110.000</li>
-      <li>2.000 - Rp 220.000</li>
-      <li>5.000 - Rp 550.000</li>
-      <li>10.000 - Rp 1.100.000</li>
-      <br>
-      <b>Followers TikTok</b>
-      <li>100 - Rp 10.000</li>
-      <li>200 - Rp 20.000</li>
-      <li>300 - Rp 30.000</li>
-      <li>400 - Rp 40.000</li>
-      <li>500 - Rp 50.000</li>
-      <li>1.000 - Rp 100.000</li>
-      <li>2.000 - Rp 200.000</li>
-      <li>5.000 - Rp 500.000</li>
-      <li>10.000 - Rp 1.000.000</li>
-      <br>
-      <b>Like Instagram</b>
-      <li>100 - Rp 5.000</li>
-      <li>200 - Rp 10.000</li>
-      <li>300 - Rp 15.000</li>
-      <li>400 - Rp 20.000</li>
-      <li>500 - Rp 25.000</li>
-      <li>1.000 - Rp 50.000</li>
-      <li>2.000 - Rp 100.000</li>
-      <li>5.000 - Rp 250.000</li>
-      <li>10.000 - Rp 500.000</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>App Premium</h2>
-    <ul>
-      <li>Netflix 1 Bulan - Rp 40.000</li>
-      <li>Spotify Premium 1 Bulan - Rp 14.000</li>
-      <li>Gemini 1 Tahun + 2TB GDrive - Rp 35.000</li>
-      <li>AM Premium 1 Tahun - Rp 7.000</li>
-      <li>YouTube Premium 1 Bulan - Rp 10.000</li>
-      <li>CapCut Premium 1 Bulan - Rp 20.000</li>
-      <li>Gemini Premium 1 Tahun - Rp 35.000</li>
-      <li>GPT Premium 1 Bulan - Rp 30.000</li>
-      <li>Canva Premium 1 Bulan - Rp 5.000</li>
-    </ul>
-  </div>
-
-</div>
-
-<br><br>
-
-<div class="card">
-  <h2>Form Pemesanan</h2>
-  <form id="orderForm">
-
-    <label>Pilih Layanan:</label>
-    <select id="product" required>
-      <option disabled selected>Pilih Produk</option>
-      <option value="followers">Followers / Likes</option>
-      <option value="app-prem">App Premium</option>
+    <label>Pilih Layanan</label>
+    <select id="service">
+        <option value="">-- Pilih Produk --</option>
+        <option value="followers">Followers Instagram</option>
+        <option value="premium">App Premium</option>
     </select>
 
-    <label>Nama Paket:</label>
-    <input type="text" id="paket" placeholder="Contoh: 100 Followers IG / Netflix 1 Bulan" required>
+    <div id="followers-box" style="display:none;">
+        <label>Pilih Jumlah Followers</label>
+        <select id="followers">
+            <option value="10000">10.000 Followers - Rp 10.000</option>
+            <option value="20000">20.000 Followers - Rp 20.000</option>
+            <option value="50000">50.000 Followers - Rp 50.000</option>
+        </select>
 
-    <div id="followersInput" style="display:none">
-      <label>Link Profil / Username:</label>
-      <input type="text" id="profil" placeholder="Masukkan link profil" />
+        <label>Link Profil Instagram</label>
+        <input type="text" id="link" placeholder="https://instagram.com/username">
     </div>
 
-    <div id="appInput" style="display:none">
-      <label>Nomor Telepon:</label>
-      <input type="text" id="phone" placeholder="Masukkan nomor telepon" />
+    <div id="premium-box" style="display:none;">
+        <label>Nomor Whatsapp</label>
+        <input type="text" id="phone" placeholder="08xxxx">
     </div>
 
-    <button type="submit">Order Sekarang</button>
-  </form>
-</div>
+    <div class="price-box" id="price-box">
+        Total Pembayaran: <b id="total">Rp 0</b>
+    </div>
 
+    <button onclick="goPayment()">Order Sekarang</button>
 </div>
 
 <script>
-document.getElementById("product").addEventListener("change", function () {
-  if (this.value === "followers") {
-    document.getElementById("followersInput").style.display = "block";
-    document.getElementById("appInput").style.display = "none";
-  } else {
-    document.getElementById("followersInput").style.display = "none";
-    document.getElementById("appInput").style.display = "block";
-  }
+const service = document.getElementById("service");
+const followersBox = document.getElementById("followers-box");
+const premiumBox = document.getElementById("premium-box");
+const priceBox = document.getElementById("price-box");
+const followersSelect = document.getElementById("followers");
+const totalPrice = document.getElementById("total");
+
+service.addEventListener("change", () => {
+    followersBox.style.display = service.value === "followers" ? "block" : "none";
+    premiumBox.style.display = service.value === "premium" ? "block" : "none";
+    priceBox.style.display = service.value ? "block" : "none";
+    updatePrice();
 });
 
-document.getElementById("orderForm").addEventListener("submit", function(e){
-  e.preventDefault();
+followersSelect.addEventListener("change", updatePrice);
 
-  const product = document.getElementById("product").value;
-  const paket = document.getElementById("paket").value;
-  const profil = document.getElementById("profil").value;
-  const phone = document.getElementById("phone").value;
+function updatePrice() {
+    let price = 0;
+    if (service.value === "followers") {
+        price = Number(followersSelect.value);
+    } else if (service.value === "premium") {
+        price = 15000; // harga app premium
+    }
+    totalPrice.textContent = "Rp " + price.toLocaleString("id-ID");
+}
 
-  const url = `payment.html?product=${product}&paket=${paket}&profil=${profil}&phone=${phone}`;
-  window.location.href = url;
-});
+function goPayment() {
+    const selected = service.value;
+    let price = selected === "followers" ? followersSelect.value : 15000;
+    let data = {
+        service: selected,
+        followers: selected === "followers" ? followersSelect.value : "",
+        link: selected === "followers" ? document.getElementById("link").value : "",
+        phone: selected === "premium" ? document.getElementById("phone").value : "",
+        price: price
+    };
+    localStorage.setItem("orderData", JSON.stringify(data));
+    window.location.href = "payment.html";
+}
 </script>
 
 </body>
