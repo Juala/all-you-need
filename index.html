@@ -2,91 +2,94 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Order Layanan Sosmed</title>
-<link rel="stylesheet" href="style.css">
+<title>Order Followers & Premium App</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f1f3f8; padding: 20px; }
+    .box { background: #fff; padding: 20px; border-radius: 12px; max-width: 600px; margin: auto; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; }
+    label { font-weight: bold; margin-top: 15px; display: block; }
+    select, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px; }
+    #harga { font-size: 22px; text-align: center; font-weight: bold; margin-top: 15px; color: #0a7c1a; }
+    button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; font-size: 18px; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+</style>
 </head>
+
 <body>
 
-<div class="container">
-<h2>Order Layanan Sosial Media</h2>
+<div class="box">
+<h2>Order Followers & App Premium</h2>
 
-<form id="orderForm">
-
-<!-- PILIH PRODUK -->
-<div class="form-group">
-<label for="product">Pilih Produk</label>
-<select id="product" name="product" required>
-<option value="">-- Pilih Produk --</option>
-
-<option value="Followers Instagram|10.000">Followers Instagram</option>
-<option value="Followers TikTok|9.000">Followers TikTok</option>
-<option value="Like Instagram|7.000">Like Instagram</option>
-<option value="Like TikTok|7.000">Like TikTok</option>
-<option value="Jam Tayang YouTube|50.000">Jam Tayang YouTube</option>
-
-<!-- APP PREMIUM -->
-<option value="Canva Pro|35.000">Canva Pro</option>
-<option value="CapCut Pro|30.000">CapCut Pro</option>
-<option value="InShot Pro|25.000">InShot Pro</option>
-<option value="VN Pro|25.000">VN Pro</option>
-<option value="Netflix Premium|40.000">Netflix Premium</option>
-<option value="Disney+ Hotstar|35.000">Disney+ Hotstar</option>
-<option value="Spotify Premium|25.000">Spotify Premium</option>
-<option value="YouTube Premium|30.000">YouTube Premium</option>
-
+<label>Pilih Produk:</label>
+<select id="product" onchange="updateOptions()">
+    <option value="">-- Pilih Produk --</option>
+    <option value="ig_followers">Followers Instagram</option>
+    <option value="tt_followers">Followers TikTok</option>
+    <option value="ig_likes">Like Instagram</option>
+    <option value="tt_likes">Like TikTok</option>
+    <option value="app_premium">App Premium</option>
 </select>
-</div>
 
-<!-- USERNAME -->
-<div class="form-group">
-<label for="username">Username / Link Akun</label>
-<input type="text" id="username" name="username" placeholder="Masukkan username" required>
-</div>
+<label>Pilih Jumlah:</label>
+<select id="jumlah" onchange="updateHarga()">
+    <option value="">-- Pilih Jumlah --</option>
+</select>
 
-<!-- JUMLAH -->
-<div class="form-group" id="qtyGroup" style="display:none;">
-<label for="quantity">Jumlah</label>
-<input type="number" id="quantity" name="quantity" placeholder="Masukkan jumlah" min="1">
-</div>
+<label>Username / Link Akun:</label>
+<input type="text" id="username" placeholder="Masukkan username / link akun">
 
-<!-- TOTAL BAYAR -->
-<p id="totalDisplay" style="display:none; font-weight:bold; font-size:18px; margin-top:10px;"></p>
+<p id="harga">Total: Rp 0</p>
 
-<button type="submit" class="btn">Order Sekarang</button>
-</form>
+<button onclick="orderNow()">Order Sekarang</button>
 </div>
 
 <script>
-// ambil elemen html
-const productSelect = document.getElementById("product");
-const qtyGroup = document.getElementById("qtyGroup");
-const quantityInput = document.getElementById("quantity");
-const totalDisplay = document.getElementById("totalDisplay");
+const hargaList = {
+    ig_followers: {100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+    tt_followers: {100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+    ig_likes: {100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+    tt_likes: {100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+    app_premium: {
+        "Netflix 1 Bulan":40000,"Spotify Premium 1 Bulan":14000,"Gemini 1thn + 2TB":35000,
+        "AM Premium 1 Tahun":7000,"YouTube Premium 1 Bulan":10000,"Capcut PRO 1 Bulan":20000,
+        "Gemini Premium 1thn + 2TB":35000,"GPT Premium 1 Bulan":30000,"Canva Premium 1 Bulan":5000
+    }
+};
 
-productSelect.addEventListener("change", () => {
-    qtyGroup.style.display = productSelect.value !== "" ? "block" : "none";
-    totalDisplay.style.display = "none";
-    quantityInput.value = "";
-});
+function updateOptions() {
+    const p = document.getElementById("product").value;
+    const jumlah = document.getElementById("jumlah");
+    jumlah.innerHTML = '<option value="">-- Pilih Jumlah --</option>';
 
-quantityInput.addEventListener("input", () => {
-    const [name, price] = productSelect.value.split("|");
-    const qty = Number(quantityInput.value);
-    const total = qty * parseInt(price.replace(/\./g, ""));
-    totalDisplay.innerHTML = `Total Bayar: <b>Rp ${total.toLocaleString("id-ID")}</b>`;
-    totalDisplay.style.display = "block";
-});
+    for (let key in hargaList[p]) {
+        jumlah.innerHTML += `<option value="${key}">${key}</option>`;
+    }
+    updateHarga();
+}
 
-// kirim data ke payment.html
-document.getElementById("orderForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const [productName, productPrice] = productSelect.value.split("|");
-    const username = document.getElementById("username").value;
-    const qty = quantityInput.value;
+function updateHarga() {
+    const p = document.getElementById("product").value;
+    const j = document.getElementById("jumlah").value;
+    const price = hargaList[p][j] || 0;
+    document.getElementById("harga").innerText = "Total: Rp " + price.toLocaleString("id-ID");
+}
 
-    window.location.href = `payment.html?product=${encodeURIComponent(productName)}&price=${productPrice}&username=${encodeURIComponent(username)}&qty=${qty}`;
-});
+function orderNow() {
+    const p = document.getElementById("product").value;
+    const j = document.getElementById("jumlah").value;
+    const u = document.getElementById("username").value;
+    const price = hargaList[p][j];
+
+    if (!p || !j || !u) return alert("Lengkapi data terlebih dahulu");
+
+    const orderID = "ROJAID-" + Math.floor(Math.random()*90000+10000);
+
+    const params = new URLSearchParams({
+        product:p, jumlah:j, username:u, harga:price, id:orderID
+    });
+
+    window.location.href = "payment.html?" + params.toString();
+}
 </script>
 
 </body>
