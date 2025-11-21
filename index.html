@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Layanan</title>
 <style>
-body { font-family: Arial, sans-serif; background:#f5f5f5; padding:20px; margin:0; }
-.container { max-width:450px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-label { font-weight:bold; display:block; margin-top:10px; }
-select, input { width:100%; padding:10px; margin-top:5px; border-radius:8px; border:1px solid #ccc; }
-button { margin-top:18px; width:100%; padding:12px; border:none; border-radius:8px; background:#000; color:#fff; font-size:17px; font-weight:bold; cursor:pointer; }
-.hidden { display:none; }
-.price-box { margin-top:10px; font-size:18px; font-weight:bold; color:#008000 }
+body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
+.container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+label{font-weight:bold;display:block;margin-top:10px;}
+select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
+button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+.hidden{display:none;}
+.price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
 </style>
 </head>
 <body>
@@ -28,17 +28,16 @@ button { margin-top:18px; width:100%; padding:12px; border:none; border-radius:8
   <option value="followers_tt">Followers TikTok</option>
   <option value="likes_ig">Like Instagram</option>
   <option value="likes_tt">Like TikTok</option>
-  <option value="app_prem">App Premium Bulanan</option>
+  <option value="app_prem">App Premium</option>
 </select>
 
 <div id="jumlahBox" class="hidden">
 <label>Pilih Jumlah:</label>
-<select id="jumlah">
-</select>
+<select id="jumlah"></select>
 </div>
 
 <label id="labelAkun" class="hidden">Username / Link Profil:</label>
-<input type="text" id="username" placeholder="Masukkan username atau link profil" class="hidden">
+<input type="text" id="username" placeholder="Masukkan username / link profil" class="hidden">
 
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
@@ -56,54 +55,61 @@ const harga = {
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
-  app_prem:{"1 Bulan":150000}
+
+  // List App Premium
+  app_prem:{
+      "Netflix 1 Bulan":40000,
+      "Spotify Premium 1 Bulan":14000,
+      "Gemini 1 Tahun + 2TB GDrive":35000,
+      "Amazon Prime 1 Tahun":7000,
+      "YouTube Premium 1 Bulan":10000,
+      "Capcut Premium 1 Bulan":20000,
+      "Gemini Premium 1 Tahun + 2TB":35000,
+      "GPT Premium 1 Bulan":30000,
+      "Canva Premium 1 Bulan":5000
+  }
 };
 
-document.getElementById("product").addEventListener("change", function(){
-  const prod = this.value;
-  const jumlahSelect = document.getElementById("jumlah");
-  const box = document.getElementById("jumlahBox");
-  const userInput = document.getElementById("username");
-  const labelAkun = document.getElementById("labelAkun");
-  const priceDiv = document.getElementById("priceDisplay");
+document.getElementById("product").addEventListener("change",function(){
+  const prod=this.value;
+  const jumlahSelect=document.getElementById("jumlah");
+  const box=document.getElementById("jumlahBox");
+  const userInput=document.getElementById("username");
+  const priceDiv=document.getElementById("priceDisplay");
 
-  jumlahSelect.innerHTML = "";
+  jumlahSelect.innerHTML="";
   priceDiv.classList.add("hidden");
 
-  if(prod === "app_prem"){
+  if(prod==="app_prem"){
     userInput.classList.remove("hidden");
-    labelAkun.classList.add("hidden");
-    box.classList.add("hidden");
-    priceDiv.textContent = "Total: Rp " + harga.app_prem["1 Bulan"].toLocaleString();
-    priceDiv.classList.remove("hidden");
-  } else {
-    userInput.classList.remove("hidden");
-    labelAkun.classList.remove("hidden");
     box.classList.remove("hidden");
-
-    Object.keys(harga[prod]).forEach(j=>{
-      jumlahSelect.innerHTML += `<option value="${j}">${j}</option>`;
+    Object.keys(harga.app_prem).forEach(j=>{
+      jumlahSelect.innerHTML+=`<option value="${j}">${j}</option>`;
     });
-
-    priceDiv.textContent = "Total: Rp " + harga[prod][jumlahSelect.value].toLocaleString();
+    priceDiv.textContent="Total: Rp "+harga.app_prem[Object.keys(harga.app_prem)[0]].toLocaleString();
     priceDiv.classList.remove("hidden");
-
-    jumlahSelect.addEventListener("change", ()=> {
-      priceDiv.textContent = "Total: Rp " + harga[prod][jumlahSelect.value].toLocaleString();
-    });
+    jumlahSelect.addEventListener("change",()=>priceDiv.textContent="Total: Rp "+harga.app_prem[jumlahSelect.value].toLocaleString());
+  } 
+  else {
+    userInput.classList.remove("hidden");
+    box.classList.remove("hidden");
+    Object.keys(harga[prod]).forEach(j=>jumlahSelect.innerHTML+=`<option value="${j}">${j}</option>`);
+    priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString();
+    priceDiv.classList.remove("hidden");
+    jumlahSelect.addEventListener("change",()=>priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString());
   }
 });
 
-document.getElementById("orderForm").addEventListener("submit", function(e){
+document.getElementById("orderForm").addEventListener("submit",function(e){
   e.preventDefault();
-  const product = document.getElementById("product").value;
-  const jumlah = product === "app_prem" ? "1 Bulan" : document.getElementById("jumlah").value;
-  const username = document.getElementById("username").value;
-  const phone = document.getElementById("phone").value;
+  const product=document.getElementById("product").value;
+  const jumlah=document.getElementById("jumlah").value;
+  const username=document.getElementById("username").value;
+  const phone=document.getElementById("phone").value;
 
-  const url = `payment.html?product=${product}&jumlah=${jumlah}&username=${username}&phone=${phone}`;
-  window.location.href = url;
+  window.location.href=`payment.html?product=${product}&jumlah=${jumlah}&username=${username}&phone=${phone}`;
 });
 </script>
+
 </body>
 </html>
