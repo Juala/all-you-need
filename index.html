@@ -4,21 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Layanan</title>
+
 <style>
-    body { font-family: Arial, sans-serif; background:#f4f6f9; padding:20px; }
-    .container { background:#fff; padding:25px; max-width:450px; margin:auto; border-radius:15px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-    h2 { text-align:center; }
-    label { font-weight:bold; margin-top:15px; display:block; }
-    select, input { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:10px;}
-    .price-box { margin-top:15px; padding:15px; background:#e9f5ff; border-radius:10px; display:none; font-size:18px; }
-    button { width:100%; margin-top:20px; padding:12px; background:#007bff; border:none; color:#fff; font-size:18px; border-radius:10px; cursor:pointer; }
-    button:hover { background:#005fcc; }
+    body { margin:0; background:#0e0f12; color:#fff; font-family: "Poppins", sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .card {
+        background: linear-gradient(145deg, #1a1c20, #111315);
+        padding: 35px;
+        width: 420px;
+        border-radius: 18px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        text-align:center;
+        border:1px solid #2a2d33;
+    }
+    h2 { font-size:26px; margin-bottom:15px; font-weight:700; }
+    label { text-align:left; width:100%; display:block; margin-top:18px; font-weight:500; }
+    select, input {
+        width:100%; padding:12px; margin-top:5px;
+        background:#232528; color:#fff; border:none; border-radius:12px;
+        font-size:15px;
+    }
+    select:focus, input:focus { outline: 2px solid #3498db; }
+    .price-box {
+        margin-top:20px; padding:15px;
+        background:#111315; border:1px solid #2b2e33;
+        border-radius:12px; display:none; font-size:19px; font-weight:600;
+    }
+    .btn {
+        margin-top:25px; width:100%;
+        padding:14px; background:#3498db; color:#fff; font-size:18px;
+        border-radius:12px; cursor:pointer; border:none; transition:.3s;
+        font-weight:600;
+    }
+    .btn:hover { background:#2176b8; }
 </style>
 </head>
-<body>
 
-<div class="container">
-    <h2>Order Layanan</h2>
+<body>
+<div class="card">
+    <h2>🛒 Order Layanan</h2>
 
     <label>Pilih Layanan</label>
     <select id="service">
@@ -40,7 +63,7 @@
     </div>
 
     <div id="premium-box" style="display:none;">
-        <label>Nomor Whatsapp</label>
+        <label>Nomor WhatsApp</label>
         <input type="text" id="phone" placeholder="08xxxx">
     </div>
 
@@ -48,7 +71,7 @@
         Total Pembayaran: <b id="total">Rp 0</b>
     </div>
 
-    <button onclick="goPayment()">Order Sekarang</button>
+    <button class="btn" onclick="goPayment()">Order Sekarang</button>
 </div>
 
 <script>
