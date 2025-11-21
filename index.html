@@ -37,7 +37,9 @@ button:hover {background:#005fcc;}
 
   <div id="jumlahBox" style="display:none">
     <label>Pilih Jumlah:</label>
-    <select id="jumlah"></select>
+    <select id="jumlah">
+      <option value="" disabled selected>-- Pilih Jumlah --</option>
+    </select>
 
     <label>Link Profil:</label>
     <input type="text" id="profil" placeholder="Masukkan link profil">
@@ -69,7 +71,6 @@ button:hover {background:#005fcc;}
 </div>
 
 <script>
-// Harga followers & likes
 const priceList = {
   "followers-ig": {100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   "followers-tt": {100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
@@ -80,23 +81,22 @@ const priceList = {
 document.getElementById("produk").addEventListener("change", function () {
   const prod = this.value;
 
+  document.getElementById("priceBox").style.display = "none";
+
   if (prod.includes("followers") || prod.includes("likes")) {
     document.getElementById("jumlahBox").style.display = "block";
     document.getElementById("appBox").style.display = "none";
 
     let jumlahSelect = document.getElementById("jumlah");
-    jumlahSelect.innerHTML = "";
+    jumlahSelect.innerHTML = `<option value="" disabled selected>-- Pilih Jumlah --</option>`;
 
     Object.keys(priceList[prod]).forEach(num => {
       jumlahSelect.innerHTML += `<option value="${num}">${num}</option>`;
     });
 
-    document.getElementById("priceBox").style.display = "none";
-
   } else {
     document.getElementById("jumlahBox").style.display = "none";
     document.getElementById("appBox").style.display = "block";
-    document.getElementById("priceBox").style.display = "none";
   }
 });
 
