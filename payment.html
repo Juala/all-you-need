@@ -1,56 +1,27 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pembayaran</title>
-
-<style>
-    body { background:#0d0e11; color:#fff; font-family:"Poppins", sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
-    .box {
-        background:linear-gradient(145deg,#1a1c20,#111315);
-        padding:30px; width:420px;
-        border-radius:20px; text-align:center;
-        box-shadow:0 0 20px rgba(0,0,0,0.4);
-        border:1px solid #2b2d32;
-    }
-    h2 { font-size:26px; font-weight:700; margin-bottom:15px;}
-    img { width:270px; border-radius:14px; margin-top:10px; }
-    .price { font-size:26px; font-weight:700; margin-top:12px; }
-    .btn {
-        background:#25d366; color:#fff; text-decoration:none;
-        padding:14px; display:block; margin-top:25px;
-        border-radius:12px; font-size:20px; font-weight:600;
-        transition:.3s;
-    }
-    .btn:hover { background:#1ea654; }
-</style>
-</head>
-
-<body>
-<div class="box">
-    <h2>💳 Pembayaran</h2>
-    <div class="price" id="price"></div>
-    <p>Silakan Scan QRIS untuk melakukan pembayaran</p>
-    <img src="qris.png">
-    <a id="btnWa" class="btn" target="_blank">Konfirmasi via WhatsApp</a>
-</div>
-
 <script>
 let data = JSON.parse(localStorage.getItem("orderData"));
 document.getElementById("price").textContent =
     "Total: Rp " + Number(data.price).toLocaleString("id-ID");
 
-let message = `Halo admin, saya ingin konfirmasi pembayaran%0A%0A
-Produk: ${data.service}%0A
-Followers: ${data.followers}%0A
-Link: ${data.link}%0A
-WA: ${data.phone}%0A
-Total: Rp ${data.price}`;
+let message = "";
+
+if (data.service === "followers") {
+    message =
+        `Halo admin, saya ingin konfirmasi pembayaran.%0A%0A` +
+        `Produk: Followers%0A` +
+        `Jumlah: ${Number(data.followers).toLocaleString("id-ID")} Followers%0A` +
+        `Link Profil: ${data.link}%0A` +
+        `Total Pembayaran: Rp ${Number(data.price).toLocaleString("id-ID")}%0A%0A` +
+        `Mohon diproses ya min 🙏`;
+} else if (data.service === "premium") {
+    message =
+        `Halo admin, saya ingin konfirmasi pembayaran.%0A%0A` +
+        `Produk: App Premium%0A` +
+        `Nomor WhatsApp: ${data.phone}%0A` +
+        `Total Pembayaran: Rp ${Number(data.price).toLocaleString("id-ID")}%0A%0A` +
+        `Mohon diproses ya min 🙏`;
+}
 
 document.getElementById("btnWa").href =
     "https://wa.me/6282262642007?text=" + message;
 </script>
-
-</body>
-</html>
