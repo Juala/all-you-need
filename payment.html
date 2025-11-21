@@ -6,67 +6,28 @@
 <title>Payment | ROJA STORE</title>
 
 <style>
-body {
-  font-family: Poppins, Arial, sans-serif;
-  background: #f4f7fc;
-  margin: 0;
-  padding: 0;
-}
-.container {
-  max-width: 500px;
-  margin: 50px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-h2 {
-  text-align: center;
-  font-weight: 700;
-  color: #2d2d2d;
-  margin-bottom: 15px;
-}
-.info-box {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 10px;
-  background: #eef3ff;
-  border: 1px solid #cdd8ff;
-}
-p { font-size: 15px; margin: 6px 0; }
-.value { font-weight: bold; color:#004aad }
-.qris-box {
-  margin-top: 20px;
-  text-align: center;
-}
-button {
-  background: #007bff;
-  width: 100%;
-  padding: 14px;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 17px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 18px;
-}
-button:hover {
-  background:#005fcc;
-}
+body {font-family:Poppins,Arial,sans-serif;background:#f4f7fc;margin:0;padding:0;}
+.container {max-width:500px;margin:50px auto;background:white;padding:25px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2 {text-align:center;font-weight:700;color:#2d2d2d;margin-bottom:15px;}
+.info-box {margin-top:20px;padding:15px;border-radius:10px;background:#eef3ff;border:1px solid #cdd8ff;}
+p {font-size:15px;margin:6px 0;}
+.value {font-weight:700;color:#004aad;}
+.qris-box {margin-top:20px;text-align:center;}
+button {background:#007bff;width:100%;padding:14px;color:white;border:none;border-radius:10px;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;}
+button:hover {background:#005fcc;}
 </style>
 </head>
 
 <body>
-
 <div class="container">
   <h2>Konfirmasi Pembayaran</h2>
 
   <div class="info-box">
     <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
-    <p><strong>Nama:</strong> <span id="nama" class="value"></span></p>
-    <p><strong>WhatsApp:</strong> <span id="whatsapp" class="value"></span></p>
+    <p><strong>Nama Panggilan:</strong> <span id="nama" class="value"></span></p>
     <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
+    <p><strong>Jumlah / Layanan:</strong> <span id="jumlah" class="value"></span></p>
+    <p><strong>Profil / Username:</strong> <span id="profil" class="value"></span></p>
     <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
   </div>
 
@@ -81,43 +42,45 @@ button:hover {
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 
-// Generate Order ID ROJAID-xxxxxx
+// Generate ROJAID-xxxxxx
 const randomNum = Math.floor(100000 + Math.random() * 900000);
 const orderId = `ROJAID-${randomNum}`;
 
-// Set ke tampilan
+// Show data
 document.getElementById("orderId").textContent = orderId;
-document.getElementById("nama").textContent = urlParams.get("nama");
-document.getElementById("whatsapp").textContent = urlParams.get("whatsapp");
+document.getElementById("nama").textContent   = urlParams.get("nama");
 document.getElementById("produk").textContent = urlParams.get("produk");
-document.getElementById("harga").textContent = urlParams.get("harga");
+document.getElementById("jumlah").textContent = urlParams.get("jumlah") || urlParams.get("app");
+document.getElementById("profil").textContent = urlParams.get("profil") || "-";
+document.getElementById("harga").textContent  = urlParams.get("harga");
 
-// Button WA confirm
+// Send WA
 function kirimWA() {
-  const waNumber = "6282262642007"; 
+  const waNumber = "6282262642007";
   const message =
-`Halo Admin, saya ingin konfirmasi pembayaran
+`Halo Mas, saya ingin konfirmasi pembayaran
+
 Order ID : ${orderId}
 Nama : ${urlParams.get("nama")}
-WhatsApp : ${urlParams.get("whatsapp")}
 Produk : ${urlParams.get("produk")}
-Total : ${urlParams.get("harga")}
-Mohon dicek ya.`;
+Jumlah / Layanan : ${urlParams.get("jumlah") || urlParams.get("app")}
+Profil / Username : ${urlParams.get("profil")}
+Total : Rp ${urlParams.get("harga")}
 
-  window.open(
-    `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,
-    "_blank"
-  );
+Mohon segerah dicek ya.`;
 
-  // kirim ke spreadsheet
+  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, "_blank");
+
+  // SEND TO GOOGLE SHEETS
   fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
       orderId: orderId,
       nama: urlParams.get("nama"),
-      whatsapp: urlParams.get("whatsapp"),
       produk: urlParams.get("produk"),
+      jumlah: urlParams.get("jumlah") || urlParams.get("app"),
+      profil: urlParams.get("profil"),
       harga: urlParams.get("harga")
     })
   });
