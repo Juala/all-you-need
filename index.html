@@ -3,72 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment | ROJA STORE</title>
+<title>ROJA STORE - Order Produk</title>
 <style>
 body {font-family:Poppins,Arial,sans-serif;background:#f4f7fc;margin:0;padding:0;}
-.container {max-width:500px;margin:50px auto;background:#fff;padding:25px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-h2{text-align:center;font-weight:700;margin-bottom:15px;color:#2d2d2d;}
-.info-box {margin-top:20px;padding:15px;border-radius:10px;background:#eef3ff;border:1px solid #cdd8ff;}
-.value {font-weight:bold;color:#004aad}
-button{background:#007bff;width:100%;padding:14px;color:white;border:none;border-radius:10px;font-size:17px;font-weight:600;margin-top:18px;cursor:pointer;}
-button:hover{background:#005fcc;}
-.link {text-align:center;margin-top:18px;font-size:15px;}
+.container {max-width:600px;margin:40px auto;background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.1);}
+h2 {text-align:center;font-weight:700;margin-bottom:20px;color:#222;}
+label {font-weight:600;margin-top:10px;display:block;}
+select,input {width:100%;padding:12px;border-radius:10px;border:1px solid #ccc;margin-top:7px;}
+button {margin-top:20px;width:100%;padding:14px;background:#007bff;font-size:18px;font-weight:700;color:white;border:none;border-radius:10px;cursor:pointer;}
+button:hover {background:#005fcc;}
+#hargaBox {margin-top:12px;padding:10px;background:#eef3ff;border:1px solid #cdd8ff;border-radius:10px;font-size:17px;font-weight:700;text-align:center;color:#004aad;display:none;}
+@media(max-width:600px){ .container{margin:10px;padding:18px;} h2{font-size:20px;} }
 </style>
 </head>
 
 <body>
 <div class="container">
-<h2>Konfirmasi Pembayaran</h2>
+<h2>Form Order ROJA STORE</h2>
 
-<div class="info-box">
-<p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
-<p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
-<p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
-<p><strong>Username / Nomor HP:</strong> <span id="username" class="value"></span></p>
-<p><strong>Total Bayar:</strong> <span id="harga" class="value"></span></p>
-</div>
+<label>Pilih Produk:</label>
+<select id="product" onchange="updateOptions()">
+<option value="">-- Pilih Produk --</option>
+<option value="ig_followers">Followers Instagram</option>
+<option value="tt_followers">Followers TikTok</option>
+<option value="ig_likes">Like Instagram</option>
+<option value="tt_likes">Like TikTok</option>
+<option value="app_premium">App Premium</option>
+</select>
 
-<div style="text-align:center;margin-top:15px">
-<p>Silakan scan QRIS berikut untuk melakukan pembayaran</p>
-<img src="qris.png" width="250" style="border-radius:10px;border:1px solid #ddd;">
-</div>
+<label>Pilih Jumlah:</label>
+<select id="jumlah" onchange="updateHarga()">
+<option value="">-- Pilih Jumlah --</option>
+</select>
 
-<button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
+<label for="username">Username / Link Akun:</label>
+<input type="text" id="username" placeholder="Masukkan username / link akun">
 
-<div class="link">
-<a href="index.html">Pesan Lagi</a>
-</div>
+<div id="hargaBox">Total: Rp <span id="harga"></span></div>
+
+<button onclick="orderNow()">Order Sekarang</button>
 </div>
 
 <script>
-const url = new URLSearchParams(window.location.search);
+const hargaList = {
+    ig_followers:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+    tt_followers:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+    ig_likes:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+    tt_likes:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+    app_premium:{
+        "Netflix 1 Bulan":40000,"Spotify Premium 1 Bulan":14000,"Gemini 1 Tahun + 2TB":35000,
+        "Youtube Premium 1 Bulan":10000,"Capcut Premium 1 Bulan":20000,"GPT Premium 1 Bulan":30000,
+        "Canva Premium 1 Bulan":5000
+    }
+};
 
-let orderId = localStorage.getItem("orderID") || url.get("orderId");
-localStorage.setItem("orderID", orderId);
+function updateOptions(){
+    const p = document.getElementById("product").value;
+    const jumlah = document.getElementById("jumlah");
+    const inputField = document.getElementById("username");
 
-document.getElementById("orderId").innerText = orderId;
-document.getElementById("produk").innerText = url.get("product");
-document.getElementById("jumlah").innerText = url.get("jumlah");
-document.getElementById("username").innerText = url.get("username");
-document.getElementById("harga").innerText = url.get("harga");
+    jumlah.innerHTML = '<option value="">-- Pilih Jumlah --</option>';
+    for(let key in hargaList[p]){ jumlah.innerHTML += `<option value="${key}">${key}</option>`;}
 
-function kirimWA(){
-  const wa = "6282262642007";
-  const msg =
-`Halo Admin, saya ingin konfirmasi pembayaran
-Order ID : ${orderId}
-Produk : ${url.get("product")}
-Jumlah : ${url.get("jumlah")}
-Username/NomorHP : ${url.get("username")}
-Total : Rp ${url.get("harga")}
-Mohon dicek ya.`;
+    if(p==="app_premium"){
+        inputField.placeholder = "Masukkan Nomor HP";
+        document.querySelector("label[for='username']").innerText = "Nomor HP:";
+    } else {
+        inputField.placeholder = "Masukkan username / link akun";
+        document.querySelector("label[for='username']").innerText = "Username / Link Akun:";
+    }
 
-  window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`,'_blank');
+    document.getElementById("hargaBox").style.display = "none";
+}
 
-  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev",{
-    method:"POST",headers:{ "Content-Type":"application/json"},
-    body:JSON.stringify({orderId:orderId,produk:url.get("product"),jumlah:url.get("jumlah"),username:url.get("username"),harga:url.get("harga")})
-  });
+function updateHarga(){
+    const p=document.getElementById("product").value;
+    const j=document.getElementById("jumlah").value;
+    if(!p||!j) return;
+    const price = hargaList[p][j];
+    document.getElementById("harga").innerText = price.toLocaleString("id-ID");
+    document.getElementById("hargaBox").style.display = "block";
+}
+
+function orderNow(){
+    const p=document.getElementById("product").value;
+    const j=document.getElementById("jumlah").value;
+    const u=document.getElementById("username").value;
+    const h=document.getElementById("harga").innerText;
+
+    if(!p||!j||!u) return alert("Lengkapi data terlebih dahulu!");
+
+    const id="ROJAID-"+Math.floor(Math.random()*90000+10000);
+    window.location.href = `payment.html?product=${p}&jumlah=${j}&username=${u}&harga=${h}&orderId=${id}`;
 }
 </script>
 </body>
