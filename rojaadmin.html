@@ -25,6 +25,7 @@ input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid
 <th>ID Pesanan</th>
 <th>Nama</th>
 <th>WA</th>
+<th>Produk</th>
 <th>Total</th>
 <th>Status</th>
 </tr>
@@ -71,10 +72,11 @@ function renderTable(list){
   list.forEach(data=>{
     table.innerHTML += `
     <tr>
-        <td>${data.id}</td>
-        <td>${data.nama}</td>
-        <td>${data.whatsapp}</td>
-        <td>Rp ${Number(data.total).toLocaleString("id-ID")}</td>
+        <td>${data.id ?? ""}</td>
+        <td>${data.nama ?? ""}</td>
+        <td>${data.whatsapp ?? ""}</td>
+        <td>${data.produk ?? "-"}</td>
+        <td>Rp ${Number(data.total ?? 0).toLocaleString("id-ID")}</td>
         <td>
           <select onchange="updateStatus('${data.id}', this.value)">
             <option ${data.status=="Pending"?"selected":""}>Pending</option>
