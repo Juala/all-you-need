@@ -17,17 +17,17 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <body>
 
 <div class="container">
-<h2>Form Pemesanan</h2>
+<h2>Form Pesanan RojaServer</h2>
 
 <form id="orderForm">
 
 <label>Pilih Produk:</label>
 <select id="product" required>
   <option value="">-- Pilih Produk --</option>
-  <option value="followers_ig">Followers Instagram</option>
-  <option value="followers_tt">Followers TikTok</option>
-  <option value="likes_ig">Like Instagram</option>
-  <option value="likes_tt">Like TikTok</option>
+  <option value="followers_ig">Followers Instagram Indonesia</option>
+  <option value="followers_tt">Followers TikTok Indonesia</option>
+  <option value="likes_ig">Like Instagram Indonesia</option>
+  <option value="likes_tt">Like TikTok Indonesia</option>
   <option value="app_prem">App Premium</option>
 </select>
 
@@ -55,6 +55,7 @@ const harga={
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+
   app_prem:{
     "Netflix 1 Bulan":40000,
     "Spotify Premium 1 Bulan":14000,
@@ -103,13 +104,12 @@ productSelect.addEventListener("change",function(){
 });
 </script>
 
-<!-- FIREBASE + SUBMIT -->
-<script type="module">
-// Firebase import
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js";
 
-// Firebase Config
+<!-- FIREBASE SCRIPT NEW -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
   authDomain: "database-jualan.firebaseapp.com",
@@ -121,12 +121,10 @@ const firebaseConfig = {
   measurementId: "G-NFZDMXMPKZ"
 };
 
-// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Submit Order
-document.getElementById("orderForm").addEventListener("submit",function(e){
+document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
   const product = productSelect.value;
@@ -134,29 +132,23 @@ document.getElementById("orderForm").addEventListener("submit",function(e){
   const phone = document.getElementById("phone").value;
   const username = usernameInput.value;
 
-  const totalHarga = product==="app_prem" ? harga.app_prem[jumlah] : harga[product][jumlah];
+  const totalHarga = product==="app_prem"? harga.app_prem[jumlah] : harga[product][jumlah];
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
-  // Save to localStorage
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  orders.push({orderId,product,jumlah,phone,username,harga:totalHarga});
-  localStorage.setItem("orders",JSON.stringify(orders));
-
-  // Save to Firebase Realtime DB
-  const newOrderRef = push(ref(db,"orders"));
-  set(newOrderRef,{
-    orderId:orderId,
-    product:product,
-    jumlah:jumlah,
-    phone:phone,
-    username:username,
-    harga:totalHarga,
-    status:"Proses",
-    waktu:new Date().toLocaleString("id-ID")
+  const newOrder = push(ref(db, "orders"));
+  set(newOrder, {
+    orderId,
+    product,
+    jumlah,
+    phone,
+    username,
+    harga: totalHarga,
+    status: "Menunggu",
+    waktu: new Date().toLocaleString("id-ID")
   });
 
-  // Redirect ke halaman pembayaran
-  window.location.href = `payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&username=${encodeURIComponent(username)}&harga=${encodeURIComponent(totalHarga)}`;
+  window.location.href =
+   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 </script>
 
