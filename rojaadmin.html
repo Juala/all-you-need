@@ -73,9 +73,9 @@ function renderTable(list){
     table.innerHTML += `
     <tr>
         <td>${data.id ?? ""}</td>
-        <td>${data.nama ?? ""}</td>
+        <td>${data.nama ?? "Username / Link Profil"}</td>
         <td>${data.whatsapp ?? ""}</td>
-        <td>${data.produk ?? "-"}</td>
+        <td>${data.produk ?? "followers_ig"}</td>
         <td>Rp ${Number(data.total ?? 0).toLocaleString("id-ID")}</td>
         <td>
           <select onchange="updateStatus('${data.id}', this.value)">
