@@ -55,7 +55,6 @@ const harga={
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
-
   app_prem:{
     "Netflix 1 Bulan":40000,
     "Spotify Premium 1 Bulan":14000,
@@ -102,33 +101,62 @@ productSelect.addEventListener("change",function(){
     priceDiv.textContent="Total: Rp "+list[jumlahSelect.value].toLocaleString();
   });
 });
+</script>
+
+<!-- FIREBASE + SUBMIT -->
+<script type="module">
+// Firebase import
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
+  measurementId: "G-NFZDMXMPKZ"
+};
+
+// Init Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // Submit Order
 document.getElementById("orderForm").addEventListener("submit",function(e){
   e.preventDefault();
 
-  const product=productSelect.value;
-  const jumlah=jumlahSelect.value;
-  const phone=document.getElementById("phone").value;
-  const username=usernameInput.value;
+  const product = productSelect.value;
+  const jumlah = jumlahSelect.value;
+  const phone = document.getElementById("phone").value;
+  const username = usernameInput.value;
 
-  const totalHarga = product==="app_prem"?harga.app_prem[jumlah]:harga[product][jumlah];
-  const orderId=`ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  const totalHarga = product==="app_prem" ? harga.app_prem[jumlah] : harga[product][jumlah];
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
-  // Simpan ke localStorage
+  // Save to localStorage
   const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  orders.push({
+  orders.push({orderId,product,jumlah,phone,username,harga:totalHarga});
+  localStorage.setItem("orders",JSON.stringify(orders));
+
+  // Save to Firebase Realtime DB
+  const newOrderRef = push(ref(db,"orders"));
+  set(newOrderRef,{
     orderId:orderId,
     product:product,
     jumlah:jumlah,
     phone:phone,
     username:username,
-    harga:totalHarga
+    harga:totalHarga,
+    status:"Proses",
+    waktu:new Date().toLocaleString("id-ID")
   });
-  localStorage.setItem("orders",JSON.stringify(orders));
 
-  // Redirect ke payment.html
-  window.location.href=`payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&username=${encodeURIComponent(username)}&harga=${encodeURIComponent(totalHarga)}`;
+  // Redirect ke halaman pembayaran
+  window.location.href = `payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&username=${encodeURIComponent(username)}&harga=${encodeURIComponent(totalHarga)}`;
 });
 </script>
 
