@@ -27,7 +27,6 @@ button:hover { background:#005fcc; }
     <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
     <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
     <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
-    <p id="usernameRow" style="display:none;"><strong>Username / Link:</strong> <span id="username" class="value"></span></p>
     <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
     <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
   </div>
@@ -41,56 +40,54 @@ button:hover { background:#005fcc; }
   <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
 </div>
 
-<script>
-// Ambil query dari URL
-const urlParams = new URLSearchParams(window.location.search);
-let orderId = urlParams.get("orderId");
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-// Data
-const product = urlParams.get("product");
-const jumlah = urlParams.get("jumlah");
-const phone = urlParams.get("phone");
-const username = urlParams.get("username");
-const hargaTotal = urlParams.get("harga");
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.appspot.com",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
+};
 
-// Tampilkan ke UI
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ambil dari url
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("orderId");
+const product = params.get("product");
+const jumlah = params.get("jumlah");
+const phone = params.get("phone");
+const hargaTotal = params.get("harga");
+
+// tampil ke UI
 document.getElementById("orderId").textContent = orderId;
 document.getElementById("produk").textContent = product;
 document.getElementById("jumlah").textContent = jumlah;
 document.getElementById("phone").textContent = phone;
 document.getElementById("harga").textContent = "Rp " + Number(hargaTotal).toLocaleString("id-ID");
 
-if(username && username.trim() !== ""){
-  document.getElementById("username").textContent = username;
-  document.getElementById("usernameRow").style.display = "block";
-}
+// kirim ke firebase
+set(ref(db, "orders/" + orderId), {
+  id: orderId,
+  nama: "-",
+  whatsapp: phone,
+  total: hargaTotal,
+  status: "Pending"
+});
 
-// Fungsi Kirim via WhatsApp + Save to Firebase (Apps Script)
+// kirim WA
 function kirimWA(){
-  const waNumber = "6282262642007";
-  let message = `Halo Mas, saya ingin konfirmasi pembayaran\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}`;
-  if(username && username.trim() !== "") message += `\nUsername / Link: ${username}`;
-  message += `\nNomor WhatsApp: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}\nMohon dicek ya.`;
-
-  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, "_blank");
-
-  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      id: orderId,
-      nama: username || "-",
-      whatsapp: phone,
-      total: Number(hargaTotal),
-      status: "Pending"
-    })
-  });
+  let waMsg = `Halo, saya ingin konfirmasi pembayaran.\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}\nNomor: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}`;
+  window.open(`https://wa.me/6282262642007?text=${encodeURIComponent(waMsg)}`);
 }
 
-// Tombol pesan lagi
-function pesanLagi(){
-  window.location.href = "index.html";
-}
+window.pesanLagi = function(){ window.location.href = "index.html"; }
 </script>
 
 </body>
