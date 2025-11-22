@@ -7,13 +7,16 @@
 <style>
 body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
 .container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+
 table{width:100%;border-collapse:collapse;margin-top:15px;}
 th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
 th{background:#333;color:#fff;}
+
 button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:13px;}
 .btn-proses{background:#ff9800;color:#fff;}
 .btn-selesai{background:#4caf50;color:#fff;}
 .btn-hapus{background:#e91e63;color:#fff;}
+
 .status-box{padding:6px 10px;border-radius:6px;font-weight:bold;color:#fff;}
 .wait{background:#9c27b0;}
 .process{background:#ff9800;}
@@ -42,56 +45,71 @@ button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:1
 </table>
 </div>
 
-<script>
-// Load data dari localStorage
+<!-- Firebase -->
+<script type="module">
+// Firebase setup
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
+  measurementId: "G-NFZDMXMPKZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Load Data Realtime
 function loadOrders(){
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
   const table = document.getElementById("orderTable");
-  table.innerHTML="";
+  const ordersRef = ref(db, "orders");
 
-  orders.forEach((order,index)=>{
-    if(!order.status) order.status="Menunggu";
+  onValue(ordersRef, (snapshot)=>{
+    table.innerHTML="";
+    snapshot.forEach((child)=>{
+      const order = child.val();
+      const key = child.key;
 
-    let statusClass =
-      order.status==="Menunggu" ? "wait" :
-      order.status==="Proses" ? "process" : "done";
+      let statusClass =
+        order.status==="Menunggu" ? "wait" :
+        order.status==="Proses" ? "process" : "done";
 
-    table.innerHTML += `
-      <tr>
-        <td>${order.orderId}</td>
-        <td>${order.product}</td>
-        <td>${order.jumlah}</td>
-        <td>${order.username || "-"}</td>
-        <td>${order.phone}</td>
-        <td>Rp ${order.harga.toLocaleString()}</td>
-        <td><span class="status-box ${statusClass}">${order.status}</span></td>
-        <td>
-          <button class="btn-proses" onclick="updateStatus(${index}, 'Proses')">Proses</button>
-          <button class="btn-selesai" onclick="updateStatus(${index}, 'Selesai')">Selesai</button>
-          <button class="btn-hapus" onclick="deleteOrder(${index})">Hapus</button>
-        </td>
-      </tr>
-    `;
+      table.innerHTML += `
+        <tr>
+          <td>${order.orderId}</td>
+          <td>${order.product}</td>
+          <td>${order.jumlah}</td>
+          <td>${order.username || "-"}</td>
+          <td>${order.phone}</td>
+          <td>Rp ${order.harga.toLocaleString()}</td>
+          <td><span class="status-box ${statusClass}">${order.status}</span></td>
+          <td>
+            <button class="btn-proses" onclick="updateStatus('${key}','Proses')">Proses</button>
+            <button class="btn-selesai" onclick="updateStatus('${key}','Selesai')">Selesai</button>
+            <button class="btn-hapus" onclick="deleteOrder('${key}')">Hapus</button>
+          </td>
+        </tr>
+      `;
+    });
   });
 }
-
-// Ubah status pesanan
-function updateStatus(index,newStatus){
-  const orders = JSON.parse(localStorage.getItem("orders"));
-  orders[index].status = newStatus;
-  localStorage.setItem("orders", JSON.stringify(orders));
-  loadOrders();
-}
-
-// Hapus pesanan
-function deleteOrder(index){
-  const orders = JSON.parse(localStorage.getItem("orders"));
-  orders.splice(index,1);
-  localStorage.setItem("orders", JSON.stringify(orders));
-  loadOrders();
-}
-
 loadOrders();
+
+// Update Status
+window.updateStatus = function(id,newStatus){
+  update(ref(db, "orders/" + id),{ status:newStatus });
+};
+
+// Hapus Order
+window.deleteOrder = function(id){
+  remove(ref(db, "orders/" + id));
+};
 </script>
 
 </body>
