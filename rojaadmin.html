@@ -3,38 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROJA ADMIN</title>
+<title>ROJA ADMIN - Data Pesanan</title>
 <style>
-body { font-family:Poppins, Arial; background:#eef2f7; padding:20px; }
-h2 { margin-bottom:15px; }
-table { width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden; }
-th, td { padding:12px; border-bottom:1px solid #ddd; }
-th { background:#263fa9; color:white; }
-select { padding:6px; border-radius:6px; }
-.status-pending { color:#ff9800; font-weight:bold; }
-.status-proses { color:#2196f3; font-weight:bold; }
-.status-success { color:#4caf50; font-weight:bold; }
-.status-cancel { color:#f44336; font-weight:bold; }
+body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
+th{background:#333;color:#fff;}
+select{padding:6px;border-radius:6px;font-weight:bold;}
+.pending{color:#ff9800;}
+.proses{color:#2196f3;}
+.success{color:#4caf50;}
+.cancel{color:#e91e63;}
 </style>
 </head>
 <body>
 
+<div class="container">
 <h2>📦 Data Pesanan Masuk</h2>
 
 <table>
 <thead>
 <tr>
-<th>ID</th>
+<th>ID Pesanan</th>
 <th>Nama</th>
-<th>No. WA</th>
-<th>Total Bayar</th>
+<th>WA</th>
+<th>Total</th>
 <th>Status</th>
 </tr>
 </thead>
 <tbody id="orderTable"></tbody>
 </table>
+</div>
 
-<!-- Firebase Script -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -54,40 +55,45 @@ const db = getDatabase(app);
 
 const table = document.getElementById("orderTable");
 
-// realtime load orders
+// Realtime load data Firebase
 onValue(ref(db, "orders"), (snapshot)=>{
     table.innerHTML = "";
+
     snapshot.forEach(child=>{
         const data = child.val();
-        
+
+        // fallback agar tidak undefined
+        const id = data.id || "-";
+        const nama = data.nama || "-";
+        const wa = data.whatsapp || "-";
+        const total = data.total ? "Rp " + Number(data.total).toLocaleString("id-ID") : "Rp 0";
+        const status = data.status || "Pending";
+
         table.innerHTML += `
         <tr>
-            <td>${data.id}</td>
-            <td>${data.nama}</td>
-            <td>${data.whatsapp}</td>
-            <td>${data.total}</td>
+            <td>${id}</td>
+            <td>${nama}</td>
+            <td>${wa}</td>
+            <td>${total}</td>
             <td>
-                <select data-id="${data.id}" class="statusSelect">
-                    <option ${data.status=="Pending"?"selected":""}>Pending</option>
-                    <option ${data.status=="Proses"?"selected":""}>Proses</option>
-                    <option ${data.status=="Success"?"selected":""}>Success</option>
-                    <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
+                <select data-id="${id}">
+                    <option ${status=="Pending"?"selected":""}>Pending</option>
+                    <option ${status=="Proses"?"selected":""}>Proses</option>
+                    <option ${status=="Success"?"selected":""}>Success</option>
+                    <option ${status=="Cancel"?"selected":""}>Cancel</option>
                 </select>
             </td>
         </tr>
         `;
     });
 
-    // event change status
-    document.querySelectorAll(".statusSelect").forEach(select=>{
-        select.addEventListener("change", function(){
-            const id = this.getAttribute("data-id");
-            const value = this.value;
-
-            update(ref(db, "orders/" + id), {status: value});
-        });
+    document.querySelectorAll("select").forEach(select=>{
+      select.addEventListener("change", function(){
+        const orderId = this.dataset.id;
+        const statusUpdate = this.value;
+        update(ref(db, "orders/" + orderId), {status: statusUpdate});
+      });
     });
-
 });
 </script>
 
