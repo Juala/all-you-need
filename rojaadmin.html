@@ -3,79 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel | ROJA STORE</title>
+<title>ROJA ADMIN - Data Pesanan</title>
 <style>
-body { font-family:Arial, sans-serif; background:#f4f7fc; padding:20px; }
-.container { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-h2 { text-align:center; margin-bottom:20px; }
-
-input {
-  width:100%; padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px;
-}
-
-table { width:100%; border-collapse:collapse; margin-top:15px; }
-table, th, td { border:1px solid #ddd; }
-th { background:#007bff; color:white; padding:10px; }
-td { padding:8px; text-align:center; font-size:14px; }
-tr:hover { background:#eef5ff; }
+body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
+th{background:#333;color:#fff;}
+button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:13px;}
+.btn-proses{background:#ff9800;color:#fff;}
+.btn-selesai{background:#4caf50;color:#fff;}
+.btn-hapus{background:#e91e63;color:#fff;}
+.status-box{padding:6px 10px;border-radius:6px;font-weight:bold;color:#fff;}
+.wait{background:#9c27b0;}
+.process{background:#ff9800;}
+.done{background:#4caf50;}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>ADMIN PANEL - ROJA STORE</h2>
+<h2>📦 Data Pesanan Masuk</h2>
 
-  <input type="text" id="search" placeholder="Cari Order ID (contoh: ROJAID-123456)" onkeyup="searchOrder()">
-
-  <table>
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Produk</th>
-        <th>Jumlah</th>
-        <th>Username / Link</th>
-        <th>WhatsApp</th>
-        <th>Harga</th>
-      </tr>
-    </thead>
-    <tbody id="orderTable"></tbody>
-  </table>
+<table>
+<thead>
+<tr>
+<th>ID Pesanan</th>
+<th>Produk</th>
+<th>Jumlah</th>
+<th>Username</th>
+<th>WA</th>
+<th>Harga</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="orderTable"></tbody>
+</table>
 </div>
 
 <script>
-// Ambil data dari Google Sheets Apps Script JSON
-fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev")
-  .then(res => res.json())
-  .then(data => {
-    const table = document.getElementById("orderTable");
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.orderId}</td>
-        <td>${row.product}</td>
-        <td>${row.jumlah}</td>
-        <td>${row.username}</td>
-        <td>${row.phone}</td>
-        <td>Rp ${Number(row.harga).toLocaleString("id-ID")}</td>
-      `;
-      table.appendChild(tr);
-    });
-  });
+// Load data dari localStorage
+function loadOrders(){
+  const orders = JSON.parse(localStorage.getItem("orders")) || [];
+  const table = document.getElementById("orderTable");
+  table.innerHTML="";
 
-// Fungsi search
-function searchOrder() {
-  const filter = document.getElementById("search").value.toUpperCase();
-  const rows = document.querySelectorAll("#orderTable tr");
+  orders.forEach((order,index)=>{
+    if(!order.status) order.status="Menunggu";
 
-  rows.forEach(row => {
-    const cell = row.getElementsByTagName("td")[0];
-    if(cell && cell.textContent.toUpperCase().indexOf(filter) > -1){
-      row.style.display = "";
-    } else {
-      row.style.display = "none";
-    }
+    let statusClass =
+      order.status==="Menunggu" ? "wait" :
+      order.status==="Proses" ? "process" : "done";
+
+    table.innerHTML += `
+      <tr>
+        <td>${order.orderId}</td>
+        <td>${order.product}</td>
+        <td>${order.jumlah}</td>
+        <td>${order.username || "-"}</td>
+        <td>${order.phone}</td>
+        <td>Rp ${order.harga.toLocaleString()}</td>
+        <td><span class="status-box ${statusClass}">${order.status}</span></td>
+        <td>
+          <button class="btn-proses" onclick="updateStatus(${index}, 'Proses')">Proses</button>
+          <button class="btn-selesai" onclick="updateStatus(${index}, 'Selesai')">Selesai</button>
+          <button class="btn-hapus" onclick="deleteOrder(${index})">Hapus</button>
+        </td>
+      </tr>
+    `;
   });
 }
+
+// Ubah status pesanan
+function updateStatus(index,newStatus){
+  const orders = JSON.parse(localStorage.getItem("orders"));
+  orders[index].status = newStatus;
+  localStorage.setItem("orders", JSON.stringify(orders));
+  loadOrders();
+}
+
+// Hapus pesanan
+function deleteOrder(index){
+  const orders = JSON.parse(localStorage.getItem("orders"));
+  orders.splice(index,1);
+  localStorage.setItem("orders", JSON.stringify(orders));
+  loadOrders();
+}
+
+loadOrders();
 </script>
 
 </body>
