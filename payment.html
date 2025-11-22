@@ -27,9 +27,7 @@ button:hover { background:#005fcc; }
     <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
     <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
     <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
-
     <p id="usernameRow" style="display:none;"><strong>Username / Link:</strong> <span id="username" class="value"></span></p>
-
     <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
     <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
   </div>
@@ -43,41 +41,19 @@ button:hover { background:#005fcc; }
   <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
 </div>
 
-<script type="module">
-// ==== Firebase Setup ====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
-  authDomain: "database-jualan.firebaseapp.com",
-  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
-  projectId: "database-jualan",
-  storageBucket: "database-jualan.firebasestorage.app",
-  messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// ==== Ambil data dari URL ====
+<script>
+// Ambil query dari URL
 const urlParams = new URLSearchParams(window.location.search);
-let orderId = sessionStorage.getItem("orderId");
+let orderId = urlParams.get("orderId");
 
-if(!orderId){
-  const randomNum = Math.floor(100000 + Math.random() * 900000);
-  orderId = `ROJAID-${randomNum}`;
-  sessionStorage.setItem("orderId", orderId);
-}
-
+// Data
 const product = urlParams.get("product");
 const jumlah = urlParams.get("jumlah");
 const phone = urlParams.get("phone");
 const username = urlParams.get("username");
 const hargaTotal = urlParams.get("harga");
 
-// ==== Tampilkan ke UI ====
+// Tampilkan ke UI
 document.getElementById("orderId").textContent = orderId;
 document.getElementById("produk").textContent = product;
 document.getElementById("jumlah").textContent = jumlah;
@@ -89,31 +65,30 @@ if(username && username.trim() !== ""){
   document.getElementById("usernameRow").style.display = "block";
 }
 
-// ==== Kirim otomatis ke Firebase ====
-push(ref(db, "orders"), {
-  orderId: orderId,
-  product: product,
-  jumlah: jumlah,
-  phone: phone,
-  username: username || "-",
-  harga: Number(hargaTotal),
-  status: "Menunggu",
-  createdAt: Date.now()
-});
-
-// ==== Kirim WhatsApp ====
-window.kirimWA = function(){
+// Fungsi Kirim via WhatsApp + Save to Firebase (Apps Script)
+function kirimWA(){
   const waNumber = "6282262642007";
   let message = `Halo Mas, saya ingin konfirmasi pembayaran\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}`;
   if(username && username.trim() !== "") message += `\nUsername / Link: ${username}`;
   message += `\nNomor WhatsApp: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}\nMohon dicek ya.`;
 
-  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
+  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, "_blank");
+
+  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      id: orderId,
+      nama: username || "-",
+      whatsapp: phone,
+      total: Number(hargaTotal),
+      status: "Pending"
+    })
+  });
 }
 
-// ==== Pesan lagi ====
-window.pesanLagi = function(){
-  sessionStorage.removeItem("orderId");
+// Tombol pesan lagi
+function pesanLagi(){
   window.location.href = "index.html";
 }
 </script>
