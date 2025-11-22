@@ -50,40 +50,38 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 
 <script>
 // List harga
-const harga = {
+const harga={
   followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
 
   app_prem:{
-      "Netflix 1 Bulan":40000,
-      "Spotify Premium 1 Bulan":14000,
-      "Gemini 1 Tahun + 2TB GDrive":35000,
-      "Alight Motion Premium 1 Tahun":7000,
-      "YouTube Premium 1 Bulan":10000,
-      "Capcut Premium 1 Bulan":20000,
-      "Gemini Premium 1 Tahun + 2TB":35000,
-      "GPT Premium 1 Bulan":30000,
-      "Canva Premium 1 Bulan":5000
+    "Netflix 1 Bulan":40000,
+    "Spotify Premium 1 Bulan":14000,
+    "Gemini 1 Tahun + 2TB GDrive":35000,
+    "Alight Motion Premium 1 Tahun":7000,
+    "YouTube Premium 1 Bulan":10000,
+    "Capcut Premium 1 Bulan":20000,
+    "Gemini Premium 1 Tahun + 2TB":35000,
+    "GPT Premium 1 Bulan":30000,
+    "Canva Premium 1 Bulan":5000
   }
 };
 
-// Element references
-const productSelect = document.getElementById("product");
-const jumlahSelect = document.getElementById("jumlah");
-const jumlahBox = document.getElementById("jumlahBox");
-const priceDiv = document.getElementById("priceDisplay");
-const usernameInput = document.getElementById("username");
-const labelUsername = document.getElementById("labelUsername");
+const productSelect=document.getElementById("product");
+const jumlahSelect=document.getElementById("jumlah");
+const jumlahBox=document.getElementById("jumlahBox");
+const priceDiv=document.getElementById("priceDisplay");
+const usernameInput=document.getElementById("username");
+const labelUsername=document.getElementById("labelUsername");
 
-productSelect.addEventListener("change", function(){
-  const prod = this.value;
+productSelect.addEventListener("change",function(){
+  const prod=this.value;
   jumlahSelect.innerHTML="";
   priceDiv.classList.add("hidden");
 
-  // tampilkan username hanya untuk followers & likes
-  if(prod === "followers_ig" || prod === "followers_tt" || prod === "likes_ig" || prod === "likes_tt"){
+  if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
     usernameInput.classList.remove("hidden");
     labelUsername.classList.remove("hidden");
   } else {
@@ -91,61 +89,43 @@ productSelect.addEventListener("change", function(){
     labelUsername.classList.add("hidden");
   }
 
-  if(prod==="app_prem"){
-    jumlahBox.classList.remove("hidden");
-    Object.keys(harga.app_prem).forEach(item=>{
-      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
-    });
-    priceDiv.textContent="Total: Rp "+harga.app_prem[Object.keys(harga.app_prem)[0]].toLocaleString();
-    priceDiv.classList.remove("hidden");
+  jumlahBox.classList.remove("hidden");
+  const list = prod==="app_prem"?harga.app_prem:harga[prod];
+  Object.keys(list).forEach(item=>{
+    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+  });
 
-    jumlahSelect.addEventListener("change", ()=> {
-      priceDiv.textContent="Total: Rp "+harga.app_prem[jumlahSelect.value].toLocaleString();
-    });
-  } else {
-    jumlahBox.classList.remove("hidden");
-    Object.keys(harga[prod]).forEach(item=>{
-      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
-    });
-    priceDiv.textContent="Total: Rp "+harga[prod][Object.keys(harga[prod])[0]].toLocaleString();
-    priceDiv.classList.remove("hidden");
+  priceDiv.textContent="Total: Rp "+list[Object.keys(list)[0]].toLocaleString();
+  priceDiv.classList.remove("hidden");
 
-    jumlahSelect.addEventListener("change", ()=> {
-      priceDiv.textContent="Total: Rp "+harga[prod][jumlahSelect.value].toLocaleString();
-    });
-  }
+  jumlahSelect.addEventListener("change",()=>{
+    priceDiv.textContent="Total: Rp "+list[jumlahSelect.value].toLocaleString();
+  });
 });
 
-// Submit form
-document.getElementById("orderForm").addEventListener("submit", function(e){
+// Submit Order
+document.getElementById("orderForm").addEventListener("submit",function(e){
   e.preventDefault();
-  const product = productSelect.value;
-  const jumlah = jumlahSelect.value;
-  const phone = document.getElementById("phone").value;
-  const username = usernameInput.value;
 
-  let totalHarga;
-  if(product==="app_prem"){
-    totalHarga = harga.app_prem[jumlah];
-  } else {
-    totalHarga = harga[product][jumlah];
-  }
+  const product=productSelect.value;
+  const jumlah=jumlahSelect.value;
+  const phone=document.getElementById("phone").value;
+  const username=usernameInput.value;
 
-  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  const totalHarga = product==="app_prem"?harga.app_prem[jumlah]:harga[product][jumlah];
+  const orderId=`ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
-  // Kirim ke spreadsheet
-  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      orderId: orderId,
-      product: product,
-      jumlah: jumlah,
-      phone: phone,
-      username: username,
-      harga: totalHarga
-    })
-  }).then(res => console.log("Data terkirim ke spreadsheet"));
+  // Simpan ke localStorage
+  const orders = JSON.parse(localStorage.getItem("orders")) || [];
+  orders.push({
+    orderId:orderId,
+    product:product,
+    jumlah:jumlah,
+    phone:phone,
+    username:username,
+    harga:totalHarga
+  });
+  localStorage.setItem("orders",JSON.stringify(orders));
 
   // Redirect ke payment.html
   window.location.href=`payment.html?orderId=${encodeURIComponent(orderId)}&product=${encodeURIComponent(product)}&jumlah=${encodeURIComponent(jumlah)}&phone=${encodeURIComponent(phone)}&username=${encodeURIComponent(username)}&harga=${encodeURIComponent(totalHarga)}`;
