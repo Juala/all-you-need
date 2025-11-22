@@ -9,7 +9,8 @@ body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
 table{width:100%;border-collapse:collapse;margin-top:15px;}
 th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
 th{background:#333;color:#fff;}
-input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc}
+input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;}
+button{padding:4px 8px;border:none;border-radius:6px;cursor:pointer;background:#e91e63;color:#fff;}
 </style>
 </head>
 <body>
@@ -28,6 +29,7 @@ input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid
 <th>Produk</th>
 <th>Total</th>
 <th>Status</th>
+<th>Aksi</th>
 </tr>
 </thead>
 <tbody id="orderTable"></tbody>
@@ -36,7 +38,7 @@ input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -70,12 +72,16 @@ onValue(ref(db, "orders"), (snapshot)=>{
 function renderTable(list){
   table.innerHTML = "";
   list.forEach(data=>{
+    // Nama hanya untuk followers/likes
+    const showNameProducts = ["followers_ig","followers_tt","likes_ig","likes_tt"];
+    const nama = showNameProducts.includes(data.produk) ? (data.nama ?? "Username / Link Profil") : "-";
+
     table.innerHTML += `
     <tr>
         <td>${data.id ?? ""}</td>
-        <td>${data.nama ?? "Username / Link Profil"}</td>
+        <td>${nama}</td>
         <td>${data.whatsapp ?? ""}</td>
-        <td>${data.produk ?? "followers_ig"}</td>
+        <td>${data.produk ?? "-"}</td>
         <td>Rp ${Number(data.total ?? 0).toLocaleString("id-ID")}</td>
         <td>
           <select onchange="updateStatus('${data.id}', this.value)">
@@ -84,6 +90,9 @@ function renderTable(list){
             <option ${data.status=="Success"?"selected":""}>Success</option>
             <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
           </select>
+        </td>
+        <td>
+          <button onclick="deleteOrder('${data.id}')">Hapus</button>
         </td>
     </tr>`;
   });
@@ -97,6 +106,12 @@ search.addEventListener("keyup", ()=>{
 
 window.updateStatus = function(id, status){
   update(ref(db, "orders/" + id), {status});
+}
+
+window.deleteOrder = function(id){
+  if(confirm("Yakin ingin menghapus pesanan ini?")){
+    remove(ref(db, "orders/" + id));
+  }
 }
 </script>
 
