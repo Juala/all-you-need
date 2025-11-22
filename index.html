@@ -12,9 +12,9 @@ select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px
 button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
 .hidden{display:none;}
 .price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
-#riwayat{margin-top:20px;border-top:1px solid #ccc;padding-top:10px;}
-.riwayat-item{padding:8px;border-bottom:1px solid #eee;}
-.status-box{font-weight:bold;}
+#history{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;border:1px solid #cdd8ff;}
+#history h3{margin-top:0;color:#004aad;}
+.history-item{margin-bottom:8px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -50,10 +50,10 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <button type="submit">Order Sekarang</button>
 </form>
 
-<!-- Riwayat transaksi pelanggan -->
-<div id="riwayat">
-  <h3>Riwayat Transaksi</h3>
-  <div id="riwayatList"></div>
+<!-- Riwayat Transaksi -->
+<div id="history">
+<h3>Riwayat Transaksi:</h3>
+<div id="historyList">Belum ada transaksi.</div>
 </div>
 
 </div>
@@ -84,6 +84,8 @@ const jumlahBox=document.getElementById("jumlahBox");
 const priceDiv=document.getElementById("priceDisplay");
 const usernameInput=document.getElementById("username");
 const labelUsername=document.getElementById("labelUsername");
+const phoneInput=document.getElementById("phone");
+const historyList=document.getElementById("historyList");
 
 productSelect.addEventListener("change",function(){
   const prod=this.value;
@@ -116,7 +118,7 @@ productSelect.addEventListener("change",function(){
 <!-- FIREBASE SCRIPT NEW -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -132,22 +134,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const riwayatList = document.getElementById("riwayatList");
-const phoneInput = document.getElementById("phone");
-
 // Submit order
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
+
   const product = productSelect.value;
   const jumlah = jumlahSelect.value;
   const phone = phoneInput.value;
   const username = usernameInput.value;
+
   const totalHarga = product==="app_prem"? harga.app_prem[jumlah] : harga[product][jumlah];
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
   const newOrder = push(ref(db, "orders"));
   set(newOrder, {
-    id: orderId,
+    orderId,
     product,
     jumlah,
     phone,
@@ -157,34 +158,27 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
     waktu: new Date().toLocaleString("id-ID")
   });
 
-  // redirect payment
-  window.location.href = `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
+  window.location.href =
+   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 
-// Listener untuk riwayat transaksi pelanggan
-function loadRiwayat(phone){
-  onValue(ref(db, "orders"), snapshot => {
-    riwayatList.innerHTML = "";
-    snapshot.forEach(child => {
+// Riwayat transaksi real-time
+function loadHistory(){
+  if(!phoneInput.value) return;
+  onValue(ref(db, "orders"), snapshot=>{
+    let html = "";
+    snapshot.forEach(child=>{
       const data = child.val();
-      if(data.phone === phone){
-        riwayatList.innerHTML += `
-          <div class="riwayat-item">
-            <div><strong>${data.product}</strong> - ${data.jumlah}</div>
-            <div class="status-box">Status: ${data.status}</div>
-            <div>Harga: Rp ${Number(data.harga).toLocaleString("id-ID")}</div>
-            <div>Waktu: ${data.waktu}</div>
-          </div>
-        `;
+      if(data.phone === phoneInput.value){
+        html += `<div class="history-item">${data.product} - ${data.jumlah} - Status: ${data.status} - Total: Rp ${Number(data.harga).toLocaleString()}</div>`;
       }
     });
+    historyList.innerHTML = html || "Belum ada transaksi.";
   });
 }
 
-// Trigger update riwayat ketika nomor WA diisi
-phoneInput.addEventListener("blur", () => {
-  if(phoneInput.value) loadRiwayat(phoneInput.value);
-});
+// Update riwayat ketika nomor WA diubah
+phoneInput.addEventListener("input", loadHistory);
 </script>
 
 </body>
