@@ -1,47 +1,22 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment | ROJA STORE</title>
-<style>
-body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
-.container { max-width:500px; margin:50px auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-h2 { text-align:center; font-weight:700; color:#2d2d2d; margin-bottom:15px;}
-.info-box { margin-top:20px; padding:15px; border-radius:10px; background:#eef3ff; border:1px solid #cdd8ff; }
-p { font-size:15px; margin:6px 0; }
-.value { font-weight:bold; color:#004aad; }
-.qris-box { margin-top:20px; text-align:center; }
-.qris-box img { border-radius:10px; border:1px solid #ddd; width:250px; }
-button { background:#007bff; width:100%; padding:14px; color:white; border:none; border-radius:10px; font-size:17px; font-weight:600; cursor:pointer; margin-top:18px; }
-button:hover { background:#005fcc; }
-#btnOrderAgain { background:#28a745; margin-top:10px; }
-</style>
-</head>
-<body>
+<script type="module">
+// ================== FIREBASE ==================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
-<div class="container">
-  <h2>Konfirmasi Pembayaran</h2>
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
+};
 
-  <div class="info-box">
-    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
-    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
-    <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
-    <p id="usernameRow" style="display:none;"><strong>Username / Link:</strong> <span id="username" class="value"></span></p>
-    <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
-    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
-  </div>
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  <div class="qris-box">
-    <p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
-    <img src="qris.png" alt="QRIS">
-  </div>
-
-  <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
-  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
-</div>
-
-<script>
+// ================== AMBIL DATA DARI URL ==================
 const urlParams = new URLSearchParams(window.location.search);
 let orderId = sessionStorage.getItem("orderId");
 
@@ -52,14 +27,13 @@ if(!orderId){
   sessionStorage.setItem("orderId", orderId);
 }
 
-// Ambil data
 const product = urlParams.get("product");
 const jumlah = urlParams.get("jumlah");
 const phone = urlParams.get("phone");
 const username = urlParams.get("username");
 const hargaTotal = urlParams.get("harga");
 
-// Set data ke tampilan
+// Set ke tampilan HTML
 document.getElementById("orderId").textContent = orderId;
 document.getElementById("produk").textContent = product;
 document.getElementById("jumlah").textContent = jumlah;
@@ -71,36 +45,35 @@ if(username && username.trim() !== ""){
   document.getElementById("usernameRow").style.display = "block";
 }
 
-// Kirim WA
-function kirimWA(){
-  const waNumber = "6282262642007"; 
+// ================== FITUR BARU: PUSH DATA TO FIREBASE ==================
+function simpanFirebase(){
+  push(ref(db, "orders"), {
+    orderId: orderId,
+    product: product,
+    jumlah: jumlah,
+    username: username || "-",
+    phone: phone,
+    harga: Number(hargaTotal),
+    status: "Menunggu",
+    createdAt: Date.now()
+  });
+}
+
+// ================== KIRIM WHATSAPP ==================
+window.kirimWA = function(){
+  simpanFirebase(); // <--- FITUR BARU: SIMPAN SAAT KONFIRMASI
+
+  const waNumber = "6282262642007";
   let message = `Halo Mas, saya ingin konfirmasi pembayaran\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}`;
   if(username && username.trim() !== "") message += `\nUsername / Link: ${username}`;
   message += `\nNomor WhatsApp: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}\nMohon dicek ya.`;
 
   window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
-
-  // Kirim ke spreadsheet
-  fetch("https://script.google.com/macros/s/AKfycbyzUECu2UKHaZsZlBDkMr_bWlqY1EFXTzUi4P0LOsAI/dev", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({
-      orderId: orderId,
-      product: product,
-      jumlah: jumlah,
-      username: username,
-      phone: phone,
-      harga: Number(hargaTotal)
-    })
-  });
 }
 
-// Tombol Pesan Lagi
-function pesanLagi(){
-  sessionStorage.removeItem("orderId"); // hapus orderId agar baru saat pesan lagi
+// ================== PESAN LAGI ==================
+window.pesanLagi = function(){
+  sessionStorage.removeItem("orderId");
   window.location.href = "index.html";
 }
 </script>
-
-</body>
-</html>
