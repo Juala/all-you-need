@@ -3,49 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROJA ADMIN - Data Pesanan</title>
+<title>Payment | ROJA STORE</title>
 <style>
-body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
-.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
-table{width:100%;border-collapse:collapse;margin-top:15px;}
-th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
-th{background:#333;color:#fff;}
-button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:13px;}
-.btn-proses{background:#ff9800;color:#fff;}
-.btn-selesai{background:#4caf50;color:#fff;}
-.btn-hapus{background:#e91e63;color:#fff;}
-.status-box{padding:6px 10px;border-radius:6px;font-weight:bold;color:#fff;}
-.wait{background:#9c27b0;}
-.process{background:#ff9800;}
-.done{background:#4caf50;}
+body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
+.container { max-width:500px; margin:50px auto; background:#fff; padding:30px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,.1); }
+h2 { text-align:center; margin-bottom:20px; }
+.input { margin-bottom:15px; }
+label { font-weight:600; }
+input { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; }
+button { width:100%; padding:15px; background:#007bff; color:#fff; font-weight:bold; border:none; border-radius:10px; cursor:pointer; }
+button:hover { background:#005fcc; }
 </style>
 </head>
 <body>
-
 <div class="container">
-<h2>📦 Data Pesanan Masuk</h2>
+<h2>Konfirmasi Pembayaran</h2>
 
-<table>
-<thead>
-<tr>
-<th>ID Pesanan</th>
-<th>Produk</th>
-<th>Jumlah</th>
-<th>Username</th>
-<th>WA</th>
-<th>Harga</th>
-<th>Status</th>
-<th>Aksi</th>
-</tr>
-</thead>
-<tbody id="orderTable"></tbody>
-</table>
+<div class="input">
+<label>ID Pesanan</label>
+<input type="text" id="orderId" readonly value="ROJA-<?php echo rand(11111,99999); ?>">
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+<div class="input">
+<label>Nama Pembeli</label>
+<input type="text" id="nama">
+</div>
 
+<div class="input">
+<label>Nomor WhatsApp</label>
+<input type="text" id="wa">
+</div>
+
+<div class="input">
+<label>Total Bayar</label>
+<input type="text" id="harga" value="25000" readonly>
+</div>
+
+<button id="submitOrder">Bayar Sekarang</button>
+
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+// konfigurasi firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
   authDomain: "database-jualan.firebaseapp.com",
@@ -59,44 +62,26 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const table = document.getElementById("orderTable");
 
-onValue(ref(db, "orders"), snapshot =>{
-  table.innerHTML = "";
-  snapshot.forEach(item =>{
-    const data = item.val();
-    const key = item.key;
+document.getElementById("submitOrder").addEventListener("click", function(){
+    const id = document.getElementById("orderId").value;
+    const nama = document.getElementById("nama").value;
+    const wa = document.getElementById("wa").value;
+    const harga = document.getElementById("harga").value;
 
-    let statusClass =
-      data.status === "Menunggu" ? "wait" :
-      data.status === "Proses" ? "process" : "done";
-
-    table.innerHTML += `
-      <tr>
-        <td>${data.orderId}</td>
-        <td>${data.product}</td>
-        <td>${data.jumlah}</td>
-        <td>${data.username || "-"}</td>
-        <td>${data.phone}</td>
-        <td>Rp ${data.harga.toLocaleString()}</td>
-        <td><span class="status-box ${statusClass}">${data.status}</span></td>
-        <td>
-          <button class="btn-proses" onclick="setStatus('${key}','Proses')">Proses</button>
-          <button class="btn-selesai" onclick="setStatus('${key}','Selesai')">Selesai</button>
-          <button class="btn-hapus" onclick="deleteOrder('${key}')">Hapus</button>
-        </td>
-      </tr>
-    `;
-  });
+    set(ref(db, "orders/" + id), {
+        id:id,
+        nama:nama,
+        whatsapp:wa,
+        total: harga,
+        status: "Pending"
+    }).then(()=>{
+        alert("Pesanan berhasil dikirim! Admin akan memverifikasi.");
+        window.location.href = "index.html"; 
+    }).catch((error)=>{
+        alert("Error: " + error);
+    });
 });
-
-window.setStatus = function(key,status){
-  update(ref(db, "orders/" + key), { status });
-};
-
-window.deleteOrder = function(key){
-  remove(ref(db, "orders/" + key));
-};
 </script>
 
 </body>
