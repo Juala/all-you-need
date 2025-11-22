@@ -12,9 +12,11 @@ select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px
 button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
 .hidden{display:none;}
 .price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
-#history{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;border:1px solid #cdd8ff;}
-#history h3{margin-top:0;color:#004aad;}
-.history-item{margin-bottom:8px;font-size:14px;}
+.history-box{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;}
+.history-box h3{margin:0 0 10px 0;}
+.history-item{padding:8px;border-bottom:1px solid #ccc;font-size:14px;}
+.history-item:last-child{border-bottom:none;}
+.status{font-weight:bold;}
 </style>
 </head>
 <body>
@@ -50,12 +52,11 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <button type="submit">Order Sekarang</button>
 </form>
 
-<!-- Riwayat Transaksi -->
-<div id="history">
-<h3>Riwayat Transaksi:</h3>
-<div id="historyList">Belum ada transaksi.</div>
+<!-- Riwayat transaksi -->
+<div class="history-box">
+<h3>Riwayat Transaksi Anda</h3>
+<div id="historyList">Silakan masukkan nomor WhatsApp untuk melihat riwayat.</div>
 </div>
-
 </div>
 
 <script>
@@ -65,6 +66,7 @@ const harga={
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+
   app_prem:{
     "Netflix 1 Bulan":40000,
     "Spotify Premium 1 Bulan":14000,
@@ -84,8 +86,8 @@ const jumlahBox=document.getElementById("jumlahBox");
 const priceDiv=document.getElementById("priceDisplay");
 const usernameInput=document.getElementById("username");
 const labelUsername=document.getElementById("labelUsername");
-const phoneInput=document.getElementById("phone");
-const historyList=document.getElementById("historyList");
+const phoneInput = document.getElementById("phone");
+const historyList = document.getElementById("historyList");
 
 productSelect.addEventListener("change",function(){
   const prod=this.value;
@@ -113,9 +115,8 @@ productSelect.addEventListener("change",function(){
     priceDiv.textContent="Total: Rp "+list[jumlahSelect.value].toLocaleString();
   });
 });
-</script>
 
-<!-- FIREBASE SCRIPT NEW -->
+// ===== FIREBASE =====
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
@@ -127,14 +128,58 @@ const firebaseConfig = {
   projectId: "database-jualan",
   storageBucket: "database-jualan.firebasestorage.app",
   messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133",
-  measurementId: "G-NFZDMXMPKZ"
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Submit order
+// Load riwayat transaksi otomatis per nomor WA
+function loadHistory(){
+  const myWA = phoneInput.value;
+  if(!myWA) return historyList.innerHTML = "Masukkan nomor WhatsApp Anda.";
+
+  const ordersRef = ref(db, "orders");
+  onValue(ordersRef, snapshot=>{
+    const orders = [];
+    snapshot.forEach(child=>{
+      const data = child.val();
+      if(data.phone === myWA){
+        orders.push(data);
+      }
+    });
+
+    if(orders.length===0){
+      historyList.innerHTML = "Belum ada transaksi.";
+    } else {
+      historyList.innerHTML = "";
+      orders.reverse().forEach(data=>{
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `
+          <div>Order ID: ${data.orderId}</div>
+          <div>Produk: ${data.product}</div>
+          <div>Jumlah: ${data.jumlah}</div>
+          <div>Harga: Rp ${Number(data.harga).toLocaleString()}</div>
+          <div>Status: <span class="status">${data.status}</span></div>
+          <div>Waktu: ${data.waktu}</div>
+        `;
+        historyList.appendChild(item);
+      });
+    }
+  });
+}
+
+// Load history saat nomor WA diketik atau load halaman
+phoneInput.addEventListener("blur", loadHistory);
+window.addEventListener("load", ()=>{
+  const savedWA = localStorage.getItem("myWA");
+  if(savedWA){
+    phoneInput.value = savedWA;
+    loadHistory();
+  }
+});
+
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
 
@@ -142,9 +187,11 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
   const jumlah = jumlahSelect.value;
   const phone = phoneInput.value;
   const username = usernameInput.value;
-
   const totalHarga = product==="app_prem"? harga.app_prem[jumlah] : harga[product][jumlah];
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  const waktu = new Date().toLocaleString("id-ID");
+
+  localStorage.setItem("myWA", phone);
 
   const newOrder = push(ref(db, "orders"));
   set(newOrder, {
@@ -155,30 +202,11 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
     username,
     harga: totalHarga,
     status: "Pending",
-    waktu: new Date().toLocaleString("id-ID")
+    waktu
   });
 
-  window.location.href =
-   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
+  window.location.href = `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
-
-// Riwayat transaksi real-time
-function loadHistory(){
-  if(!phoneInput.value) return;
-  onValue(ref(db, "orders"), snapshot=>{
-    let html = "";
-    snapshot.forEach(child=>{
-      const data = child.val();
-      if(data.phone === phoneInput.value){
-        html += `<div class="history-item">${data.product} - ${data.jumlah} - Status: ${data.status} - Total: Rp ${Number(data.harga).toLocaleString()}</div>`;
-      }
-    });
-    historyList.innerHTML = html || "Belum ada transaksi.";
-  });
-}
-
-// Update riwayat ketika nomor WA diubah
-phoneInput.addEventListener("input", loadHistory);
 </script>
 
 </body>
