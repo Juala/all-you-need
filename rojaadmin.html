@@ -70,12 +70,16 @@ onValue(ref(db, "orders"), (snapshot)=>{
 function renderTable(list){
   table.innerHTML = "";
   list.forEach(data=>{
+    // Tampilkan Nama hanya untuk followers / likes
+    const showNameProducts = ["followers_ig","followers_tt","likes_ig","likes_tt"];
+    const nama = showNameProducts.includes(data.produk) ? (data.nama ?? "Username / Link Profil") : "-";
+
     table.innerHTML += `
     <tr>
         <td>${data.id ?? ""}</td>
-        <td>${data.nama ?? "Username / Link Profil"}</td>
+        <td>${nama}</td>
         <td>${data.whatsapp ?? ""}</td>
-        <td>${data.produk ?? "followers_ig"}</td>
+        <td>${data.produk ?? "-"}</td>
         <td>Rp ${Number(data.total ?? 0).toLocaleString("id-ID")}</td>
         <td>
           <select onchange="updateStatus('${data.id}', this.value)">
