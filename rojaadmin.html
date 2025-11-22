@@ -3,52 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment | ROJA STORE</title>
+<title>Admin Dashboard Orders</title>
 <style>
-body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
-.container { max-width:500px; margin:50px auto; background:#fff; padding:30px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,.1); }
-h2 { text-align:center; margin-bottom:20px; }
-.input { margin-bottom:15px; }
-label { font-weight:600; }
-input { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; }
-button { width:100%; padding:15px; background:#007bff; color:#fff; font-weight:bold; border:none; border-radius:10px; cursor:pointer; }
-button:hover { background:#005fcc; }
+body { font-family:Poppins, Arial; background:#f1f3f9; padding:30px; }
+table { width:100%; border-collapse:collapse; }
+th, td { border:1px solid #ccc; padding:10px; text-align:left; }
+th { background:#007bff; color:white; }
+tr:nth-child(even) { background:#f7f7f7; }
 </style>
 </head>
 <body>
-<div class="container">
-<h2>Konfirmasi Pembayaran</h2>
+<h2>📦 Pesanan Masuk</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Nama</th>
+<th>WhatsApp</th>
+<th>Total</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="orderTable"></tbody>
+</table>
 
-<div class="input">
-<label>ID Pesanan</label>
-<input type="text" id="orderId" readonly value="ROJA-<?php echo rand(11111,99999); ?>">
-</div>
-
-<div class="input">
-<label>Nama Pembeli</label>
-<input type="text" id="nama">
-</div>
-
-<div class="input">
-<label>Nomor WhatsApp</label>
-<input type="text" id="wa">
-</div>
-
-<div class="input">
-<label>Total Bayar</label>
-<input type="text" id="harga" value="25000" readonly>
-</div>
-
-<button id="submitOrder">Bayar Sekarang</button>
-
-</div>
-
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-// konfigurasi firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
   authDomain: "database-jualan.firebaseapp.com",
@@ -56,30 +38,26 @@ const firebaseConfig = {
   projectId: "database-jualan",
   storageBucket: "database-jualan.firebasestorage.app",
   messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133",
-  measurementId: "G-NFZDMXMPKZ"
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-document.getElementById("submitOrder").addEventListener("click", function(){
-    const id = document.getElementById("orderId").value;
-    const nama = document.getElementById("nama").value;
-    const wa = document.getElementById("wa").value;
-    const harga = document.getElementById("harga").value;
+const table = document.getElementById("orderTable");
 
-    set(ref(db, "orders/" + id), {
-        id:id,
-        nama:nama,
-        whatsapp:wa,
-        total: harga,
-        status: "Pending"
-    }).then(()=>{
-        alert("Pesanan berhasil dikirim! Admin akan memverifikasi.");
-        window.location.href = "index.html"; 
-    }).catch((error)=>{
-        alert("Error: " + error);
+onValue(ref(db, "orders"), (snapshot)=>{
+    table.innerHTML = "";
+    snapshot.forEach(child=>{
+        const data = child.val();
+        table.innerHTML += `
+        <tr>
+            <td>${data.id}</td>
+            <td>${data.nama}</td>
+            <td>${data.whatsapp}</td>
+            <td>${data.total}</td>
+            <td>${data.status}</td>
+        </tr>`;
     });
 });
 </script>
