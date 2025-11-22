@@ -1,7 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment | ROJA STORE</title>
+<style>
+body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
+.container { max-width:500px; margin:50px auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2 { text-align:center; font-weight:700; color:#2d2d2d; margin-bottom:15px;}
+.info-box { margin-top:20px; padding:15px; border-radius:10px; background:#eef3ff; border:1px solid #cdd8ff; }
+p { font-size:15px; margin:6px 0; }
+.value { font-weight:bold; color:#004aad; }
+.qris-box { margin-top:20px; text-align:center; }
+.qris-box img { border-radius:10px; border:1px solid #ddd; width:250px; }
+button { background:#007bff; width:100%; padding:14px; color:white; border:none; border-radius:10px; font-size:17px; font-weight:600; cursor:pointer; margin-top:18px; }
+button:hover { background:#005fcc; }
+#btnOrderAgain { background:#28a745; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Konfirmasi Pembayaran</h2>
+
+  <div class="info-box">
+    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
+    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
+    <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
+
+    <p id="usernameRow" style="display:none;"><strong>Username / Link:</strong> <span id="username" class="value"></span></p>
+
+    <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
+    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
+  </div>
+
+  <div class="qris-box">
+    <p>Silakan Scan QRIS untuk melanjutkan pembayaran</p>
+    <img src="qris.png" alt="QRIS">
+  </div>
+
+  <button onclick="kirimWA()">Konfirmasi Pembayaran via WhatsApp</button>
+  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
+</div>
+
 <script type="module">
-// ================== FIREBASE ==================
+// ==== Firebase Setup ====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -16,11 +61,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================== AMBIL DATA DARI URL ==================
+// ==== Ambil data dari URL ====
 const urlParams = new URLSearchParams(window.location.search);
 let orderId = sessionStorage.getItem("orderId");
 
-// Generate Order ID jika belum ada
 if(!orderId){
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   orderId = `ROJAID-${randomNum}`;
@@ -33,7 +77,7 @@ const phone = urlParams.get("phone");
 const username = urlParams.get("username");
 const hargaTotal = urlParams.get("harga");
 
-// Set ke tampilan HTML
+// ==== Tampilkan ke UI ====
 document.getElementById("orderId").textContent = orderId;
 document.getElementById("produk").textContent = product;
 document.getElementById("jumlah").textContent = jumlah;
@@ -45,24 +89,20 @@ if(username && username.trim() !== ""){
   document.getElementById("usernameRow").style.display = "block";
 }
 
-// ================== FITUR BARU: PUSH DATA TO FIREBASE ==================
-function simpanFirebase(){
-  push(ref(db, "orders"), {
-    orderId: orderId,
-    product: product,
-    jumlah: jumlah,
-    username: username || "-",
-    phone: phone,
-    harga: Number(hargaTotal),
-    status: "Menunggu",
-    createdAt: Date.now()
-  });
-}
+// ==== Kirim otomatis ke Firebase ====
+push(ref(db, "orders"), {
+  orderId: orderId,
+  product: product,
+  jumlah: jumlah,
+  phone: phone,
+  username: username || "-",
+  harga: Number(hargaTotal),
+  status: "Menunggu",
+  createdAt: Date.now()
+});
 
-// ================== KIRIM WHATSAPP ==================
+// ==== Kirim WhatsApp ====
 window.kirimWA = function(){
-  simpanFirebase(); // <--- FITUR BARU: SIMPAN SAAT KONFIRMASI
-
   const waNumber = "6282262642007";
   let message = `Halo Mas, saya ingin konfirmasi pembayaran\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}`;
   if(username && username.trim() !== "") message += `\nUsername / Link: ${username}`;
@@ -71,9 +111,12 @@ window.kirimWA = function(){
   window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,"_blank");
 }
 
-// ================== PESAN LAGI ==================
+// ==== Pesan lagi ====
 window.pesanLagi = function(){
   sessionStorage.removeItem("orderId");
   window.location.href = "index.html";
 }
 </script>
+
+</body>
+</html>
