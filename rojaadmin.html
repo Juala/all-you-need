@@ -58,7 +58,7 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
   <button onclick="kirimAkunDanWA();" style="background:#4CAF50;color:white;">Kirim & Kirim WA (opsional)</button>
   <button onclick="previewExample()" style="background:#777;color:white;">Lihat Contoh Tampilan</button>
 </div>
-<div class="note">Catatan: fungsi ini akan mencari pesanan berdasarkan <code>orderId</code> di node <code>/orders</code> dan menambahkan field <code>account</code> (atau <code>sn_token</code> jika dipilih) ke pesanan tersebut. Data akan langsung tampil di riwayat pelanggan.</div>
+<div class="note">Catatan: fungsi ini akan mencari pesanan berdasarkan <code>orderId</code> di node <code>/orders</code> dan menambahkan field <code>account</code> (atau <code>sn_token</code jika dipilih) ke pesanan tersebut. Data akan langsung tampil di riwayat pelanggan.</div>
 
 <!-- TABEL PESANAN -->
 <h3 style="margin-top:25px;">📦 Tabel Pesanan</h3>
@@ -73,6 +73,7 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 <th>Akun</th>
 <th>Status</th>
 <th>Aksi</th>
+<th>Nota</th>
 </tr>
 </thead>
 <tbody id="orderTable"></tbody>
@@ -119,13 +120,18 @@ const kuponBody = document.getElementById("kuponBody");
 
 let dataOrders = [];
 
-// LIST PESANAN
+// LIST PESANAN (mengambil key dan value)
 onValue(ref(db, "orders"), (snapshot)=>{
     table.innerHTML = "";
     dataOrders = [];
+
     snapshot.forEach(child=>{
-        dataOrders.push({ key: child.key, ...child.val() });
+        dataOrders.push({
+          key: child.key,
+          ...child.val()
+        });
     });
+
     renderTable(dataOrders);
 });
 
@@ -158,6 +164,7 @@ function renderTable(list){
           </select>
         </td>
         <td><button onclick="deleteOrder('${data.key}')" class="small-btn danger">Hapus</button></td>
+        <td><a href="nota.html?id=${data.orderId}" target="_blank" class="small-btn" style="background:#008CBA;color:white;">Lihat Nota</a></td>
     </tr>`;
   });
 }
@@ -180,7 +187,7 @@ window.deleteOrder = function(key){
   }
 }
 
-// LIHAT AKUN
+// LIHAT AKUN (modal sederhana via prompt)
 window.lihatAkun = function(key){
   get(child(ref(db), "orders/" + key)).then(snap=>{
     if(snap.exists()){
@@ -191,7 +198,7 @@ window.lihatAkun = function(key){
   });
 }
 
-// SALIN AKUN
+// SALIN AKUN KE CLIPBOARD
 window.salinAkun = function(key){
   get(child(ref(db), "orders/" + key)).then(snap=>{
     if(snap.exists()){
@@ -203,7 +210,7 @@ window.salinAkun = function(key){
   });
 }
 
-// TAMBAH KUPON
+// FUNGSI TAMBAH KUPON
 window.buatKupon = function(){
   const kode = document.getElementById("kodeKupon").value.trim().toUpperCase();
   const value = Number(document.getElementById("nilaiKupon").value);
@@ -226,6 +233,7 @@ onValue(ref(db, "coupons"), (snapshot)=>{
   snapshot.forEach(child=>{
     const kode = child.key;
     const data = child.val();
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${kode}</td>
@@ -245,7 +253,7 @@ window.hapusKupon = function(kode){
   }
 };
 
-// KIRIM DATA AKUN
+/* ========== FITUR KIRIM DATA AKUN ========== */
 async function kirimAkun(){
   const orderId = (document.getElementById("acctOrderId").value||"").trim();
   const accountData = (document.getElementById("accountData").value||"").trim();
@@ -256,7 +264,9 @@ async function kirimAkun(){
 
   const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
   const snap = await get(q);
-  if(!snap.exists()) return alert("Order dengan ID tersebut tidak ditemukan.");
+  if(!snap.exists()){
+    return alert("Order dengan ID tersebut tidak ditemukan.");
+  }
 
   let updated = 0;
   snap.forEach(child=>{
@@ -266,18 +276,27 @@ async function kirimAkun(){
     else payload["account"] = accountData;
 
     payload["deliveredAt"] = new Date().toLocaleString("id-ID");
-    payload["status"] = "Success";
-
+    payload["status"] = "Success"; // otomatis ubah status
     update(ref(db, "orders/" + k), payload);
     updated++;
   });
+
   alert(`Berhasil mengirim data akun ke ${updated} pesanan.`);
 }
 
-// KIRIM AKUN + WA
 async function kirimAkunDanWA(){
   await kirimAkun();
   window.open("https://wa.me/?text=" + encodeURIComponent("Akun sudah dikirim. Silakan cek riwayat."), "_blank");
+}
+
+function previewExample(){
+  const imgPath = "/mnt/data/Screenshot_20251124_010151.jpg";
+  window.open(imgPath, "_blank");
+}
+</script>
+</body>
+</html>
+en("https://wa.me/?text=" + encodeURIComponent("Akun sudah dikirim. Silakan cek riwayat."), "_blank");
 }
 
 // PREVIEW CONTOH
