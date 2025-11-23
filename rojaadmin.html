@@ -10,7 +10,7 @@ table{width:100%;border-collapse:collapse;margin-top:15px;}
 th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
 th{background:#333;color:#fff;}
 input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;}
-button{padding:4px 8px;border:none;border-radius:6px;cursor:pointer;background:#e91e63;color:#fff;}
+button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -19,6 +19,12 @@ button{padding:4px 8px;border:none;border-radius:6px;cursor:pointer;background:#
 <h2>📦 Data Pesanan Masuk</h2>
 
 <input type="text" id="search" placeholder="Cari berdasarkan ROJAID-XXXXX">
+
+<!-- FITUR TAMBAH KUPON -->
+<h3 style="margin-top:25px;">🎟 Tambah Kupon Diskon</h3>
+<input type="text" id="kodeKupon" placeholder="Kode Kupon (ex: DISKON10)">
+<input type="number" id="nilaiKupon" placeholder="Nilai Potongan (ex: 10000)">
+<button style="background:#008000;color:white;" onclick="buatKupon()">Tambah Kupon</button>
 
 <table>
 <thead>
@@ -38,7 +44,7 @@ button{padding:4px 8px;border:none;border-radius:6px;cursor:pointer;background:#
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -72,35 +78,32 @@ onValue(ref(db, "orders"), (snapshot)=>{
 function renderTable(list){
   table.innerHTML = "";
   list.forEach(data=>{
-    // Nama hanya untuk followers/likes
     const showNameProducts = ["followers_ig","followers_tt","likes_ig","likes_tt"];
-    const nama = showNameProducts.includes(data.produk) ? (data.nama ?? "Username / Link Profil") : "-";
+    const nama = showNameProducts.includes(data.product) ? (data.username ?? "-") : "-";
 
     table.innerHTML += `
     <tr>
-        <td>${data.id ?? ""}</td>
+        <td>${data.orderId ?? ""}</td>
         <td>${nama}</td>
-        <td>${data.whatsapp ?? ""}</td>
-        <td>${data.produk ?? "-"}</td>
-        <td>Rp ${Number(data.total ?? 0).toLocaleString("id-ID")}</td>
+        <td>${data.phone ?? ""}</td>
+        <td>${data.product ?? "-"}</td>
+        <td>Rp ${Number(data.harga ?? 0).toLocaleString("id-ID")}</td>
         <td>
-          <select onchange="updateStatus('${data.id}', this.value)">
+          <select onchange="updateStatus('${data.orderId}', this.value)">
             <option ${data.status=="Pending"?"selected":""}>Pending</option>
             <option ${data.status=="Proses"?"selected":""}>Proses</option>
             <option ${data.status=="Success"?"selected":""}>Success</option>
             <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
           </select>
         </td>
-        <td>
-          <button onclick="deleteOrder('${data.id}')">Hapus</button>
-        </td>
+        <td><button onclick="deleteOrder('${data.orderId}')" style="background:#e91e63;color:white;">Hapus</button></td>
     </tr>`;
   });
 }
 
 search.addEventListener("keyup", ()=>{
   const keyword = search.value.toUpperCase();
-  const filtered = dataOrders.filter(item=> item.id.toUpperCase().includes(keyword));
+  const filtered = dataOrders.filter(item=> item.orderId.toUpperCase().includes(keyword));
   renderTable(filtered);
 });
 
@@ -112,6 +115,17 @@ window.deleteOrder = function(id){
   if(confirm("Yakin ingin menghapus pesanan ini?")){
     remove(ref(db, "orders/" + id));
   }
+}
+
+// FUNGSI TAMBAH KUPON
+window.buatKupon = function(){
+  const kode = document.getElementById("kodeKupon").value.toUpperCase();
+  const value = Number(document.getElementById("nilaiKupon").value);
+
+  if(!kode || !value) return alert("Isi kode & nilai kupon.");
+  set(ref(db, "coupons/" + kode), { value }).then(()=>{
+    alert("Kupon berhasil ditambahkan!");
+  });
 }
 </script>
 
