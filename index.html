@@ -45,6 +45,12 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
+<!-- INPUT KUPON DISKON -->
+<label>Kode Kupon (opsional):</label>
+<input type="text" id="kupon" placeholder="Masukkan kode kupon">
+<button type="button" id="applyKupon" style="margin-top:10px;background:#008000;color:white;font-weight:bold;">Terapkan Kupon</button>
+<div id="kuponMsg" style="font-size:14px;color:red;margin-top:5px;"></div>
+
 <div id="priceDisplay" class="price-box hidden"></div>
 
 <button type="submit">Order Sekarang</button>
@@ -86,6 +92,10 @@ const labelUsername=document.getElementById("labelUsername");
 const phoneInput=document.getElementById("phone");
 const historyList=document.getElementById("historyList");
 
+let potongan = 0;
+let totalAwal = 0;
+
+// tampil harga otomatis
 productSelect.addEventListener("change",function(){
   const prod=this.value;
   jumlahSelect.innerHTML="";
@@ -105,19 +115,21 @@ productSelect.addEventListener("change",function(){
     jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
   });
 
-  priceDiv.textContent="Total: Rp "+list[Object.keys(list)[0]].toLocaleString();
+  totalAwal = list[Object.keys(list)[0]];
+  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
   priceDiv.classList.remove("hidden");
 
   jumlahSelect.addEventListener("change",()=>{
-    priceDiv.textContent="Total: Rp "+list[jumlahSelect.value].toLocaleString();
+    totalAwal = list[jumlahSelect.value];
+    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
   });
 });
 </script>
 
-<!-- FIREBASE SCRIPT NEW -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -127,22 +139,42 @@ const firebaseConfig = {
   storageBucket: "database-jualan.firebasestorage.app",
   messagingSenderId: "766732892106",
   appId: "1:766732892106:web:cd223204bfbb529599c133",
-  measurementId: "G-NFZDMXMPKZ"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Submit order
+const kuponInput = document.getElementById("kupon");
+const applyKupon = document.getElementById("applyKupon");
+const kuponMsg = document.getElementById("kuponMsg");
+
+// CEK KUPON DISKON
+applyKupon.addEventListener("click", ()=>{
+  const kode = kuponInput.value.trim().toUpperCase();
+  if(!kode) return;
+
+  get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
+    if(snapshot.exists()){
+      potongan = Number(snapshot.val().value);
+      kuponMsg.style.color="green";
+      kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
+      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
+    } else {
+      potongan = 0;
+      kuponMsg.style.color="red";
+      kuponMsg.textContent = "Kupon tidak valid!";
+    }
+  });
+});
+
+// SUBMIT ORDER
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
-
   const product = productSelect.value;
   const jumlah = jumlahSelect.value;
   const phone = phoneInput.value;
   const username = usernameInput.value;
-
-  const totalHarga = product==="app_prem"? harga.app_prem[jumlah] : harga[product][jumlah];
+  const totalHarga = totalAwal - potongan;
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
   const newOrder = push(ref(db, "orders"));
@@ -161,7 +193,7 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
    `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 
-// Riwayat transaksi real-time termasuk update status dari admin
+// LOAD HISTORY
 function loadHistory(){
   if(!phoneInput.value) {
     historyList.innerHTML = "Belum ada transaksi.";
@@ -182,10 +214,7 @@ function loadHistory(){
   });
 }
 
-// Update riwayat ketika nomor WA diubah
 phoneInput.addEventListener("input", loadHistory);
-
-// Load history otomatis ketika halaman pertama kali dibuka
 window.addEventListener("load", loadHistory);
 </script>
 
