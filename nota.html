@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nota Pesanan | ROJA STORE</title>
+
+<style>
+body{font-family:Arial, sans-serif;background:#f1f1f1;padding:20px;margin:0;}
+.container{max-width:600px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h2{text-align:center;margin-bottom:20px;}
+.detail{margin-bottom:10px;}
+b{display:inline-block;width:120px;}
+hr{margin:15px 0;}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>Nota Pesanan</h2>
+<div id="nota"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+
+const firebaseConfig = {
+  databaseURL:"https://web-pesanan-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const urlParams=new URLSearchParams(window.location.search);
+const orderKey=urlParams.get("id");
+
+function loadNota(){
+  get(child(ref(db),"orders/"+orderKey)).then(snapshot=>{
+    if(snapshot.exists()){
+      const data=snapshot.val();
+      document.getElementById("nota").innerHTML=`
+        <div class="detail"><b>ID Pesanan</b>: ${data.orderId}</div>
+        <div class="detail"><b>Layanan</b>: ${data.layanan}</div>
+        <div class="detail"><b>Total</b>: Rp ${data.total}</div>
+        <div class="detail"><b>Status</b>: ${data.status}</div>
+        <div class="detail"><b>Catatan</b>: ${data.note || "-"}</div>
+        <hr>
+        <p>Terima kasih telah berbelanja di <b>ROJA STORE</b></p>
+      `;
+    } else {
+      document.getElementById("nota").innerHTML="<p>Data tidak ditemukan.</p>";
+    }
+  });
+}
+
+loadNota();
+</script>
+
+</body>
+</html>
