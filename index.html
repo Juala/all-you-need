@@ -8,7 +8,7 @@
 body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
 .container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
 label{font-weight:bold;display:block;margin-top:10px;}
-select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
+select,input,textarea{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
 button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
 .hidden{display:none;}
 .price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
@@ -45,6 +45,10 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
+<!-- FITUR BARU: CATATAN PEMBELI -->
+<label>Catatan (opsional):</label>
+<textarea id="note" placeholder="Contoh: kirim cepat, username privat, warna biru, dsb"></textarea>
+
 <!-- INPUT KUPON DISKON -->
 <label>Kode Kupon (opsional):</label>
 <input type="text" id="kupon" placeholder="Masukkan kode kupon">
@@ -72,6 +76,7 @@ const harga={
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
   likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
   app_prem:{
+    "CapCut Pro 1 Bulan (G7)":15000,
     "Netflix 1 Bulan":40000,
     "Spotify Premium 1 Bulan":14000,
     "Alight Motion Premium 1 Tahun":7000,
@@ -129,7 +134,7 @@ productSelect.addEventListener("change",function(){
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, get, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -168,32 +173,41 @@ applyKupon.addEventListener("click", ()=>{
 });
 
 // SUBMIT ORDER
-document.getElementById("orderForm").addEventListener("submit", function(e){
+document.getElementById("orderForm").addEventListener("submit", async function(e){
   e.preventDefault();
   const product = productSelect.value;
   const jumlah = jumlahSelect.value;
   const phone = phoneInput.value;
   const username = usernameInput.value;
+  const note = document.getElementById("note").value || "";
   const totalHarga = totalAwal - potongan;
+  // generate orderId (initial)
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  // kodeUnik based on orderId's numeric part (as requested)
+  const kodeUnik = "ROJA-" + orderId.split("-")[1];
 
-  const newOrder = push(ref(db, "orders"));
-  set(newOrder, {
+  const newOrderRef = push(ref(db, "orders"));
+  // simpan order lengkap termasuk kodeUnik dan waktu dengan timezone Jakarta
+  set(newOrderRef, {
     orderId,
+    kodeUnik,
     product,
     jumlah,
     phone,
     username,
+    note,
     harga: totalHarga,
     status: "Pending",
-    waktu: new Date().toLocaleString("id-ID")
+    waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
+    updateTime: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
   });
 
+  // redirect ke payment (tetap sama)
   window.location.href =
    `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 
-// LOAD HISTORY + klik untuk buka nota
+// LOAD HISTORY + klik untuk buka nota (tidak merubah tampilan lama)
 function loadHistory(){
   if(!phoneInput.value) {
     historyList.innerHTML = "Belum ada transaksi.";
@@ -206,6 +220,7 @@ function loadHistory(){
     snapshot.forEach(child=>{
       const data = child.val();
       if(data.phone === phoneInput.value){
+        // tampil sederhana seperti sebelumnya, tetapi bisa diklik untuk buka nota
         html += `
         <div class="history-item"
         style="padding:8px;border-radius:6px;background:#fff;border:1px solid #ddd;cursor:pointer"
@@ -221,6 +236,7 @@ function loadHistory(){
 }
 
 window.lihatNota = function(orderId){
+  // buka nota dengan parameter orderId (nota.html akan mencari berdasarkan orderId)
   window.location.href = `nota.html?orderId=${orderId}`;
 };
 
