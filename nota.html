@@ -1,102 +1,135 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Nota Pembelian | ROJA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Layanan</title>
 <style>
-  body{font-family:Arial, sans-serif;background:#f4f6fb;padding:20px;margin:0;}
-  .container{max-width:520px;margin:20px auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
-  .muted{color:#666;font-size:13px;margin-bottom:8px;}
-  h2{margin:0 0 6px;font-size:18px;}
-  .line{border-bottom:1px dashed #ddd;margin:12px 0;}
-  .row{display:flex;justify-content:space-between;margin:6px 0;}
-  .label{color:#333}
-  .value{color:#111;font-weight:600}
-  .big{font-size:18px;font-weight:700;margin-top:10px}
-  .small{font-size:13px;color:#444}
-  button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-weight:700;cursor:pointer}
-  #editArea{display:none;margin-top:10px}
-  input[type="text"], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:6px}
-  .flex{display:flex;gap:8px}
-  .btn-secondary{background:#fff;color:#000;border:1px solid #ddd}
+body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
+.container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+label{font-weight:bold;display:block;margin-top:10px;}
+select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
+button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+.hidden{display:none;}
+.price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
+#history{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;border:1px solid #cdd8ff;}
+#history h3{margin-top:0;color:#004aad;}
+.history-item{margin-bottom:8px;font-size:14px;}
 </style>
 </head>
 <body>
-  <div class="container">
-    <div id="header">
-      <h2 id="productTitle">—</h2>
-      <div class="muted" id="waktuLine">—</div>
-      <div class="muted" id="trxLine">—</div>
-    </div>
 
-    <div class="line"></div>
+<div class="container">
+<h2>Form Pesanan RojaServer</h2>
 
-    <div>
-      <div class="label small">Status Transaksi:</div>
-      <div id="statusText" class="muted big">—</div>
-    </div>
+<form id="orderForm">
 
-    <div class="line"></div>
+<label>Pilih Produk:</label>
+<select id="product" required>
+  <option value="">-- Pilih Produk --</option>
+  <option value="followers_ig">Followers Instagram Indonesia</option>
+  <option value="followers_tt">Followers TikTok Indonesia</option>
+  <option value="likes_ig">Like Instagram Indonesia</option>
+  <option value="likes_tt">Like TikTok Indonesia</option>
+  <option value="app_prem">App Premium</option>
+</select>
 
-    <div>
-      <div class="label small">Tanggal Update:</div>
-      <div id="updateText" class="muted">—</div>
-    </div>
+<div id="jumlahBox" class="hidden">
+<label>Pilih Jumlah:</label>
+<select id="jumlah"></select>
+</div>
 
-    <div class="line"></div>
+<label id="labelUsername" class="hidden">Username / Link Profil:</label>
+<input type="text" id="username" placeholder="Masukkan username / link profil" class="hidden">
 
-    <h3>Detail Pembayaran</h3>
+<label id="labelPhone">Nomor WhatsApp:</label>
+<input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
-    <div class="row"><div class="label">Harga Produk:</div><div id="hargaText" class="value">Rp 0</div></div>
-    <div class="row"><div class="label">Biaya Admin:</div><div id="adminText" class="value">Rp 0</div></div>
-    <div class="row"><div class="label">Potongan:</div><div id="potongText" class="value">- Rp 0</div></div>
-    <div class="row"><div class="label">Harga Membership:</div><div id="memberText" class="value">+ Rp 0</div></div>
-    <div class="row"><div class="label">Kode Unik:</div><div id="kodeText" class="value">-</div></div>
+<!-- INPUT KUPON DISKON -->
+<label>Kode Kupon (opsional):</label>
+<input type="text" id="kupon" placeholder="Masukkan kode kupon">
+<button type="button" id="applyKupon" style="margin-top:10px;background:#008000;color:white;font-weight:bold;">Terapkan Kupon</button>
+<div id="kuponMsg" style="font-size:14px;color:red;margin-top:5px;"></div>
 
-    <div class="line"></div>
-    <div class="row"><div class="label">Total Transaksi</div><div id="totalText" class="value big">Rp 0</div></div>
+<div id="priceDisplay" class="price-box hidden"></div>
 
-    <div id="actions">
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button id="editBtn" onclick="toggleEdit()">Edit Struk</button>
-        <button id="printBtn" class="btn-secondary" onclick="window.print()">Print</button>
-      </div>
-    </div>
+<button type="submit">Order Sekarang</button>
+</form>
 
-    <!-- EDIT AREA: pembeli bisa ubah tampilan struk (disimpan ke customStruk tanpa merubah data asli kecuali diinginkan) -->
-    <div id="editArea">
-      <label>Judul Produk / Keterangan</label>
-      <input type="text" id="editProduct">
+<!-- Riwayat Transaksi -->
+<div id="history">
+<h3>Riwayat Transaksi:</h3>
+<div id="historyList">Belum ada transaksi.</div>
+</div>
 
-      <label>Waktu Transaksi (bebas diedit)</label>
-      <input type="text" id="editWaktu">
+</div>
 
-      <label>Status Transaksi</label>
-      <input type="text" id="editStatus">
+<script>
+// List harga
+const harga={
+  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+  app_prem:{
+    "Netflix 1 Bulan":40000,
+    "Spotify Premium 1 Bulan":14000,
+    "Alight Motion Premium 1 Tahun":7000,
+    "YouTube Premium 1 Bulan":10000,
+    "Capcut Premium 1 Bulan":20000,
+    "Gemini Premium 1 Tahun + 2TB":35000,
+    "GPT Premium 1 Bulan":30000,
+    "Canva Premium 1 Bulan":5000
+  }
+};
 
-      <label>Harga Produk (angka saja)</label>
-      <input type="text" id="editHarga">
+const productSelect=document.getElementById("product");
+const jumlahSelect=document.getElementById("jumlah");
+const jumlahBox=document.getElementById("jumlahBox");
+const priceDiv=document.getElementById("priceDisplay");
+const usernameInput=document.getElementById("username");
+const labelUsername=document.getElementById("labelUsername");
+const phoneInput=document.getElementById("phone");
+const historyList=document.getElementById("historyList");
 
-      <label>Biaya Admin (angka saja)</label>
-      <input type="text" id="editAdmin">
+let potongan = 0;
+let totalAwal = 0;
 
-      <label>Potongan (angka saja negatif atau 0)</label>
-      <input type="text" id="editPotong">
+// tampil harga otomatis
+productSelect.addEventListener("change",function(){
+  const prod=this.value;
+  jumlahSelect.innerHTML="";
+  priceDiv.classList.add("hidden");
 
-      <label>Kode Unik (misal: ROJA-748237)</label>
-      <input type="text" id="editKode">
+  if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
+    usernameInput.classList.remove("hidden");
+    labelUsername.classList.remove("hidden");
+  } else {
+    usernameInput.classList.add("hidden");
+    labelUsername.classList.add("hidden");
+  }
 
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button onclick="saveEdits()">Simpan Perubahan</button>
-        <button class="btn-secondary" onclick="cancelEdit()">Batal</button>
-      </div>
-    </div>
-  </div>
+  jumlahBox.classList.remove("hidden");
+  const list = prod==="app_prem"?harga.app_prem:harga[prod];
+  Object.keys(list).forEach(item=>{
+    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+  });
 
+  totalAwal = list[Object.keys(list)[0]];
+  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
+  priceDiv.classList.remove("hidden");
+
+  jumlahSelect.addEventListener("change",()=>{
+    totalAwal = list[jumlahSelect.value];
+    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
+  });
+});
+</script>
+
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, query, orderByChild, equalTo, get, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
@@ -111,137 +144,90 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Ambil orderId dari URL (format: ROJAID-XXXXX)
-const params = new URLSearchParams(window.location.search);
-const orderId = params.get("orderId");
+const kuponInput = document.getElementById("kupon");
+const applyKupon = document.getElementById("applyKupon");
+const kuponMsg = document.getElementById("kuponMsg");
 
-if(!orderId){
-  alert("Order ID tidak ditemukan di URL");
-  throw new Error("orderId param missing");
-}
+// CEK KUPON DISKON
+applyKupon.addEventListener("click", ()=>{
+  const kode = kuponInput.value.trim().toUpperCase();
+  if(!kode) return;
 
-// elemen
-const productTitle = document.getElementById("productTitle");
-const waktuLine = document.getElementById("waktuLine");
-const trxLine = document.getElementById("trxLine");
-const statusText = document.getElementById("statusText");
-const updateText = document.getElementById("updateText");
-const hargaText = document.getElementById("hargaText");
-const adminText = document.getElementById("adminText");
-const potongText = document.getElementById("potongText");
-const memberText = document.getElementById("memberText");
-const kodeText = document.getElementById("kodeText");
-const totalText = document.getElementById("totalText");
-
-const editArea = document.getElementById("editArea");
-const editProduct = document.getElementById("editProduct");
-const editWaktu = document.getElementById("editWaktu");
-const editStatus = document.getElementById("editStatus");
-const editHarga = document.getElementById("editHarga");
-const editAdmin = document.getElementById("editAdmin");
-const editPotong = document.getElementById("editPotong");
-const editKode = document.getElementById("editKode");
-
-let foundKey = null; // push key di Firebase dari order
-
-// cari order berdasarkan field orderId
-const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
-get(q).then(snapshot=>{
-  if(!snapshot.exists()){
-    alert("Data transaksi tidak ditemukan.");
-    return;
-  }
-  snapshot.forEach(child=>{
-    // seharusnya hanya 1 match karena orderId unik
-    const data = child.val();
-    foundKey = child.key;
-
-    // jika ada customStruk simpanan sebelumnya, gunakan untuk tampilan; sebaliknya pakai data default
-    const custom = data.customStruk || {};
-
-    const displayProduct = custom.product || (data.product || "-");
-    const displayWaktu = custom.waktu || (data.waktu || "-");
-    const displayStatus = custom.status || (data.status || "-");
-    const harga = custom.harga !== undefined ? Number(custom.harga) : Number(data.harga || 0);
-    const admin = custom.admin !== undefined ? Number(custom.admin) : 0;
-    const potong = custom.potongan !== undefined ? Number(custom.potongan) : 0;
-    const member = custom.membership !== undefined ? Number(custom.membership) : 0;
-    const kode = custom.kodeUnik || data.kodeUnik || ("ROJA-" + (data.orderId ? data.orderId.split("-")[1] : ""));
-
-    // isi tampilan
-    productTitle.textContent = displayProduct;
-    waktuLine.textContent = `${displayWaktu} WIB •`;
-    trxLine.textContent = `ID. Transaksi: #${data.orderId}`;
-    statusText.textContent = displayStatus;
-    updateText.textContent = data.updateTime || data.waktu || "-";
-    hargaText.textContent = "Rp " + harga.toLocaleString();
-    adminText.textContent = "Rp " + admin.toLocaleString();
-    potongText.textContent = "- Rp " + potong.toLocaleString();
-    memberText.textContent = "+ Rp " + member.toLocaleString();
-    kodeText.textContent = kode;
-    const total = harga + admin - potong + member; // kode unik tidak diikutkan sebagai nominal
-    totalText.textContent = "Rp " + total.toLocaleString();
-
-    // isi edit fields (default)
-    editProduct.value = displayProduct;
-    editWaktu.value = displayWaktu;
-    editStatus.value = displayStatus;
-    editHarga.value = harga;
-    editAdmin.value = admin;
-    editPotong.value = potong;
-    editKode.value = kode;
+  get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
+    if(snapshot.exists()){
+      potongan = Number(snapshot.val().value);
+      kuponMsg.style.color="green";
+      kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
+      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
+    } else {
+      potongan = 0;
+      kuponMsg.style.color="red";
+      kuponMsg.textContent = "Kupon tidak valid!";
+    }
   });
-}).catch(err=>{
-  console.error(err);
-  alert("Terjadi kesalahan saat mengambil data.");
 });
 
-// toggle edit
-function toggleEdit(){
-  editArea.style.display = editArea.style.display === "none" ? "block" : "none";
-  window.scrollTo(0,document.body.scrollHeight);
-}
+// SUBMIT ORDER
+document.getElementById("orderForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const product = productSelect.value;
+  const jumlah = jumlahSelect.value;
+  const phone = phoneInput.value;
+  const username = usernameInput.value;
+  const totalHarga = totalAwal - potongan;
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
-function cancelEdit(){
-  editArea.style.display = "none";
-}
+  const newOrder = push(ref(db, "orders"));
+  set(newOrder, {
+    orderId,
+    product,
+    jumlah,
+    phone,
+    username,
+    harga: totalHarga,
+    status: "Pending",
+    waktu: new Date().toLocaleString("id-ID")
+  });
 
-// simpan editted struk ke customStruk (tidak menghapus data asli lain)
-function saveEdits(){
-  if(!foundKey){
-    alert("Tidak dapat menemukan key transaksi.");
+  window.location.href =
+   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
+});
+
+// LOAD HISTORY + klik untuk buka nota
+function loadHistory(){
+  if(!phoneInput.value) {
+    historyList.innerHTML = "Belum ada transaksi.";
     return;
   }
 
-  // ambil input user
-  const custom = {
-    product: editProduct.value || "",
-    waktu: editWaktu.value || "",
-    status: editStatus.value || "",
-    harga: Number(editHarga.value) || 0,
-    admin: Number(editAdmin.value) || 0,
-    potongan: Number(editPotong.value) || 0,
-    membership: 0,
-    kodeUnik: editKode.value || ""
-  };
-
-  // update customStruk dan updateTime
-  update(ref(db, "orders/" + foundKey + "/customStruk"), custom)
-  .then(()=>{
-    // juga update updateTime field utama supaya admin/riwayat tahu ada pembaruan
-    const now = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
-    return update(ref(db, "orders/" + foundKey), { updateTime: now });
-  })
-  .then(()=>{
-    alert("Struk berhasil disimpan.");
-    location.reload();
-  })
-  .catch(err=>{
-    console.error(err);
-    alert("Gagal menyimpan perubahan.");
+  const ordersRef = ref(db, "orders");
+  onValue(ordersRef, snapshot=>{
+    let html = "";
+    snapshot.forEach(child=>{
+      const data = child.val();
+      if(data.phone === phoneInput.value){
+        html += `
+        <div class="history-item"
+        style="padding:8px;border-radius:6px;background:#fff;border:1px solid #ddd;cursor:pointer"
+        onclick="lihatNota('${data.orderId}')">
+        ${data.product} - ${data.jumlah} <br>
+        Status: ${data.status} <br>
+        Total: Rp ${Number(data.harga).toLocaleString()}
+        </div>`;
+      }
+    });
+    historyList.innerHTML = html || "Belum ada transaksi.";
   });
 }
+
+window.lihatNota = function(orderId){
+  window.location.href = `nota.html?orderId=${orderId}`;
+};
+
+phoneInput.addEventListener("input", loadHistory);
+window.addEventListener("load", loadHistory);
+
 </script>
+
 </body>
-        </html>
-        
+</html>
