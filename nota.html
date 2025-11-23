@@ -40,7 +40,7 @@ button{margin-top:20px;width:100%;padding:12px;border:none;border-radius:8px;bac
 </div>
 </div>
 
-<!-- html2canvas untuk convert PNG -->
+<!-- html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script type="module">
@@ -54,18 +54,17 @@ const firebaseConfig = {
  projectId: "database-jualan",
  storageBucket: "database-jualan.firebasestorage.app",
  messagingSenderId: "766732892106",
- appId: "1:766732892106:web:cd223204bfbb529599c133"
+ appId: "1:766732892106:web:cd223204bfbb529599c133",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Ambil orderId dari URL
 const orderId = new URLSearchParams(window.location.search).get("orderId");
-
 const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
 
 let key = "";
+
 onValue(q, snapshot=>{
  snapshot.forEach(child=>{
    key = child.key;
@@ -80,7 +79,7 @@ onValue(q, snapshot=>{
    document.getElementById("orderId").textContent = d.orderId;
    document.getElementById("waktu").textContent = d.waktu;
 
-   // CETAK PNG DAN KIRIM WA
+   // CETAK STRUK PNG & BUKA WHATSAPP TANPA NOMOR TUJUAN
    document.getElementById("printBtn").onclick = async ()=>{
      const nota = document.getElementById("nota");
      const canvas = await html2canvas(nota);
@@ -88,9 +87,13 @@ onValue(q, snapshot=>{
      const blob = await (await fetch(img)).blob();
      const file = new File([blob], `STRUK-${d.orderId}.png`, { type: "image/png" });
 
-     const wa = `https://wa.me/${d.phone}?text=${encodeURIComponent("Berikut struk pembelian Anda 😊")}`;
-     window.location.href = wa;
-     setTimeout(()=>{navigator.share({ files:[file], title:"Struk Pembelian" })},1500);
+     // Buka WhatsApp tanpa nomor tujuan
+     window.location.href = "https://wa.me/?text=" + encodeURIComponent("Struk pembelian siap dibagikan 👍");
+
+     // Share file PNG
+     setTimeout(()=>{
+       navigator.share({ files:[file], title:"Struk Pembelian", text:"Silakan bagikan struknya" });
+     }, 1200);
    };
 
    // EDIT HARGA
