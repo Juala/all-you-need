@@ -1,122 +1,22 @@
+
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Order Layanan RojaServer</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Order Layanan</title>
 <style>
-/* Reset & font */
-body {
-    font-family: 'Poppins', Arial, sans-serif;
-    background: #f0f2f7;
-    margin: 0;
-    padding: 20px;
-    color: #333;
-}
-
-/* Container utama */
-.container {
-    max-width: 500px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 35px 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.container:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-}
-
-/* Judul form */
-h2 {
-    margin-bottom: 30px;
-    color: #1a1a1a;
-    font-weight: 700;
-    text-align: center;
-    font-size: 24px;
-}
-
-/* Label & input */
-label {
-    font-weight: 600;
-    display: block;
-    margin-top: 18px;
-    color: #555;
-}
-
-select, input {
-    width: 100%;
-    padding: 13px 15px;
-    margin-top: 6px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 15px;
-    transition: border 0.3s ease, box-shadow 0.3s ease;
-}
-select:focus, input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 8px rgba(79,70,229,0.2);
-    outline: none;
-}
-
-/* Tombol submit */
-button {
-    margin-top: 25px;
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    color: #fff;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-button:hover {
-    background: linear-gradient(90deg, #6366f1, #4f46e5);
-    transform: translateY(-2px);
-}
-
-/* Price box */
-.price-box {
-    margin-top: 18px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #16a34a;
-    text-align: right;
-    transition: all 0.3s ease;
-}
-
-/* Riwayat transaksi */
-#history {
-    margin-top: 40px;
-    background: #f8fafc;
-    padding: 22px;
-    border-radius: 15px;
-    border: 1px solid #e0e7ff;
-}
-#history h3 {
-    margin-top: 0;
-    color: #4f46e5;
-    font-weight: 700;
-    font-size: 18px;
-}
-.history-item {
-    margin-bottom: 12px;
-    font-size: 14px;
-    padding: 12px;
-    background: #ffffff;
-    border-radius: 10px;
-    border-left: 4px solid #4f46e5;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.03);
-}
-
-/* Hidden element */
-.hidden { display: none; }
+body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
+.container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+label{font-weight:bold;display:block;margin-top:10px;}
+select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
+button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+.hidden{display:none;}
+.price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
+#history{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;border:1px solid #cdd8ff;}
+#history h3{margin-top:0;color:#004aad;}
+.history-item{margin-bottom:8px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -161,7 +61,7 @@ button:hover {
 </div>
 
 <script>
-// Harga produk
+// List harga
 const harga={
   followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
@@ -189,7 +89,6 @@ const labelUsername=document.getElementById("labelUsername");
 const phoneInput=document.getElementById("phone");
 const historyList=document.getElementById("historyList");
 
-// Pilihan produk
 productSelect.addEventListener("change",function(){
   const prod=this.value;
   jumlahSelect.innerHTML="";
@@ -216,8 +115,10 @@ productSelect.addEventListener("change",function(){
     priceDiv.textContent="Total: Rp "+list[jumlahSelect.value].toLocaleString();
   });
 });
+</script>
 
-// Firebase
+<!-- FIREBASE SCRIPT NEW -->
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
@@ -238,10 +139,12 @@ const db = getDatabase(app);
 // Submit order
 document.getElementById("orderForm").addEventListener("submit", function(e){
   e.preventDefault();
+
   const product = productSelect.value;
   const jumlah = jumlahSelect.value;
   const phone = phoneInput.value;
   const username = usernameInput.value;
+
   const totalHarga = product==="app_prem"? harga.app_prem[jumlah] : harga[product][jumlah];
   const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
