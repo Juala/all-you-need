@@ -43,7 +43,7 @@ color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
 </div>
 
 <div class="btn-box noCapture">
-  <button id="printBtn">Cetak Struk (PNG)</button>
+  <button id="printBtn">Cetak Struk</button>
   <button id="editBtn">Edit Harga</button>
 </div>
 
@@ -98,7 +98,7 @@ onValue(q, snapshot=>{
           const file = new File([blob], `STRUK-${d.orderId}.png`, {type:"image/png"});
 
           if(navigator.canShare && navigator.canShare({files:[file]})){
-            await navigator.share({files:[file], title:"Struk Pembelian ROJA STORE"});
+            await navigator.share({files:[file], title:"Struk Pembelian Roja Server"});
           } else {
             const link = document.createElement("a");
             link.download = `STRUK-${d.orderId}.png`;
