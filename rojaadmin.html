@@ -119,18 +119,13 @@ const kuponBody = document.getElementById("kuponBody");
 
 let dataOrders = [];
 
-// LIST PESANAN (mengambil key dan value)
+// LIST PESANAN
 onValue(ref(db, "orders"), (snapshot)=>{
     table.innerHTML = "";
     dataOrders = [];
-
     snapshot.forEach(child=>{
-        dataOrders.push({
-          key: child.key,   // key Firebase untuk update/delete
-          ...child.val()
-        });
+        dataOrders.push({ key: child.key, ...child.val() });
     });
-
     renderTable(dataOrders);
 });
 
@@ -185,7 +180,7 @@ window.deleteOrder = function(key){
   }
 }
 
-// LIHAT AKUN (modal sederhana via prompt)
+// LIHAT AKUN
 window.lihatAkun = function(key){
   get(child(ref(db), "orders/" + key)).then(snap=>{
     if(snap.exists()){
@@ -196,7 +191,7 @@ window.lihatAkun = function(key){
   });
 }
 
-// SALIN AKUN KE CLIPBOARD
+// SALIN AKUN
 window.salinAkun = function(key){
   get(child(ref(db), "orders/" + key)).then(snap=>{
     if(snap.exists()){
@@ -208,7 +203,7 @@ window.salinAkun = function(key){
   });
 }
 
-// FUNGSI TAMBAH KUPON
+// TAMBAH KUPON
 window.buatKupon = function(){
   const kode = document.getElementById("kodeKupon").value.trim().toUpperCase();
   const value = Number(document.getElementById("nilaiKupon").value);
@@ -231,7 +226,6 @@ onValue(ref(db, "coupons"), (snapshot)=>{
   snapshot.forEach(child=>{
     const kode = child.key;
     const data = child.val();
-
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${kode}</td>
@@ -251,11 +245,7 @@ window.hapusKupon = function(kode){
   }
 };
 
-/* ========== FITUR KIRIM DATA AKUN ========== 
-   - Cari pesanan berdasarkan orderId
-   - Tambahkan field 'account' (atau 'sn_token' bila dipilih)
-   - Opsional: update status menjadi 'Success' dan beri timestamp 'deliveredAt'
-*/
+// KIRIM DATA AKUN
 async function kirimAkun(){
   const orderId = (document.getElementById("acctOrderId").value||"").trim();
   const accountData = (document.getElementById("accountData").value||"").trim();
@@ -264,14 +254,10 @@ async function kirimAkun(){
   if(!orderId) return alert("Masukkan Order ID (ROJAID-...)");
   if(!accountData) return alert("Masukkan data akun");
 
-  // query orders where orderId == entered orderId
   const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
   const snap = await get(q);
-  if(!snap.exists()){
-    return alert("Order dengan ID tersebut tidak ditemukan.");
-  }
+  if(!snap.exists()) return alert("Order dengan ID tersebut tidak ditemukan.");
 
-  // update all matching (seharusnya 1)
   let updated = 0;
   snap.forEach(child=>{
     const k = child.key;
@@ -280,36 +266,25 @@ async function kirimAkun(){
     else payload["account"] = accountData;
 
     payload["deliveredAt"] = new Date().toLocaleString("id-ID");
-    // optionally set status to Success (comment out if tidak mau auto ubah)
-    // payload["status"] = "Success";
+    payload["status"] = "Success";
 
     update(ref(db, "orders/" + k), payload);
     updated++;
   });
-
   alert(`Berhasil mengirim data akun ke ${updated} pesanan.`);
 }
 
-// same as kirimAkun but also open WA prefilled to admin (optional)
+// KIRIM AKUN + WA
 async function kirimAkunDanWA(){
   await kirimAkun();
-  // open WhatsApp default (no number) so admin can forward
   window.open("https://wa.me/?text=" + encodeURIComponent("Akun sudah dikirim. Silakan cek riwayat."), "_blank");
 }
 
-/* OPTIONAL: preview example image (developer-provided path) 
-   Note: environment will transform this local path to URL if available.
-*/
+// PREVIEW CONTOH
 function previewExample(){
-  // developer-provided screenshot path (will be transformed to URL by environment)
   const imgPath = "/mnt/data/Screenshot_20251124_010151.jpg";
   window.open(imgPath, "_blank");
 }
-
-/* ========== HELPERS when updating via table ========== */
-window.updateStatus = function(key, status){
-  update(ref(db, "orders/" + key), { status });
-};
 </script>
 
 </body>
