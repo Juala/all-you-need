@@ -91,7 +91,10 @@ onValue(ref(db, "orders"), (snapshot)=>{
     dataOrders = [];
 
     snapshot.forEach(child=>{
-        dataOrders.push(child.val());
+        dataOrders.push({
+          key: child.key,   // <-- Tambah key Firebase untuk update
+          ...child.val()
+        });
     });
 
     renderTable(dataOrders);
@@ -111,14 +114,14 @@ function renderTable(list){
         <td>${data.product ?? "-"}</td>
         <td>Rp ${Number(data.harga ?? 0).toLocaleString("id-ID")}</td>
         <td>
-          <select onchange="updateStatus('${data.orderId}', this.value)">
+          <select onchange="updateStatus('${data.key}', this.value)">
             <option ${data.status=="Pending"?"selected":""}>Pending</option>
             <option ${data.status=="Proses"?"selected":""}>Proses</option>
             <option ${data.status=="Success"?"selected":""}>Success</option>
             <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
           </select>
         </td>
-        <td><button onclick="deleteOrder('${data.orderId}')" style="background:#e91e63;color:white;">Hapus</button></td>
+        <td><button onclick="deleteOrder('${data.key}')" style="background:#e91e63;color:white;">Hapus</button></td>
     </tr>`;
   });
 }
@@ -129,13 +132,15 @@ search.addEventListener("keyup", ()=>{
   renderTable(filtered);
 });
 
-window.updateStatus = function(id, status){
-  update(ref(db, "orders/" + id), {status});
+// UPDATE STATUS DENGAN KEY
+window.updateStatus = function(key, status){
+  update(ref(db, "orders/" + key), { status });
 }
 
-window.deleteOrder = function(id){
+// DELETE ORDER
+window.deleteOrder = function(key){
   if(confirm("Yakin ingin menghapus pesanan ini?")){
-    remove(ref(db, "orders/" + id));
+    remove(ref(db, "orders/" + key));
   }
 }
 
