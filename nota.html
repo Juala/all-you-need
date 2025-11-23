@@ -35,6 +35,7 @@ color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
 <div class="data-box"><span class="label">Nomor WhatsApp:</span><span class="value" id="phone"></span></div>
 <div class="data-box"><span class="label">Username / Link:</span><span class="value" id="username"></span></div>
 <div class="data-box"><span class="label">Status Transaksi:</span><span class="value" id="status"></span></div>
+<div class="data-box" id="accountBox" style="display:none;"><span class="label">Data Akun:</span><span class="value" id="account"></span></div>
 
 <hr style="margin:10px 0;">
 <div class="data-box"><span class="label">Total:</span><span class="value" id="harga"></span></div>
@@ -87,8 +88,17 @@ onValue(q, snapshot=>{
     document.getElementById("orderId").textContent = d.orderId;
     document.getElementById("waktu").textContent = d.waktu;
 
-    document.getElementById("printBtn").onclick = async ()=>{
+    // ====== TAMPILKAN DATA AKUN JIKA ADA ======
+    const accountBox = document.getElementById("accountBox");
+    const accountEl = document.getElementById("account");
+    if(d.account || d.sn_token){
+      accountBox.style.display = "block";
+      accountEl.textContent = d.account || d.sn_token;
+    } else {
+      accountBox.style.display = "none";
+    }
 
+    document.getElementById("printBtn").onclick = async ()=>{
       html2canvas(document.getElementById("nota"), {
         scale:3,
         backgroundColor:"#ffffff",
@@ -96,7 +106,6 @@ onValue(q, snapshot=>{
       }).then(canvas=>{
         canvas.toBlob(async(blob)=>{
           const file = new File([blob], `STRUK-${d.orderId}.png`, {type:"image/png"});
-
           if(navigator.canShare && navigator.canShare({files:[file]})){
             await navigator.share({files:[file], title:"Struk Pembelian Roja Server"});
           } else {
@@ -123,4 +132,5 @@ document.getElementById("backBtn").onclick = ()=> window.location.href="index.ht
 </script>
 
 </body>
-</html>
+  </html>
+  
