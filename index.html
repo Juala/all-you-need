@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,7 +68,6 @@ const harga={
   app_prem:{
     "Netflix 1 Bulan":40000,
     "Spotify Premium 1 Bulan":14000,
-    "Gemini 1 Tahun + 2TB GDrive":35000,
     "Alight Motion Premium 1 Tahun":7000,
     "YouTube Premium 1 Bulan":10000,
     "Capcut Premium 1 Bulan":20000,
@@ -164,15 +161,21 @@ document.getElementById("orderForm").addEventListener("submit", function(e){
    `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 
-// Riwayat transaksi real-time
+// Riwayat transaksi real-time termasuk update status dari admin
 function loadHistory(){
-  if(!phoneInput.value) return;
-  onValue(ref(db, "orders"), snapshot=>{
+  if(!phoneInput.value) {
+    historyList.innerHTML = "Belum ada transaksi.";
+    return;
+  }
+  const ordersRef = ref(db, "orders");
+  onValue(ordersRef, snapshot=>{
     let html = "";
     snapshot.forEach(child=>{
       const data = child.val();
       if(data.phone === phoneInput.value){
-        html += `<div class="history-item">${data.product} - ${data.jumlah} - Status: ${data.status} - Total: Rp ${Number(data.harga).toLocaleString()}</div>`;
+        html += `<div class="history-item">
+          ${data.product} - ${data.jumlah} - Status: ${data.status} - Total: Rp ${Number(data.harga).toLocaleString()}
+        </div>`;
       }
     });
     historyList.innerHTML = html || "Belum ada transaksi.";
@@ -181,6 +184,9 @@ function loadHistory(){
 
 // Update riwayat ketika nomor WA diubah
 phoneInput.addEventListener("input", loadHistory);
+
+// Load history otomatis ketika halaman pertama kali dibuka
+window.addEventListener("load", loadHistory);
 </script>
 
 </body>
