@@ -80,7 +80,7 @@ onValue(q, snapshot=>{
       `Status: ${d.status}\n`+
       `ID Transaksi: ${d.orderId}\nTanggal: ${d.waktu}\n\n`+
       `Terima kasih telah order 😊`;
-      window.location.href = `https://wa.me/${d.phone}?text=${encodeURIComponent(waText)}`;
+      window.location.href = `https://wa.me/62${d.phone}?text=${encodeURIComponent(waText)}`;
     };
   });
 });
