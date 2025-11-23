@@ -2,59 +2,88 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nota Pesanan | ROJA STORE</title>
-
+<title>Nota Pembelian</title>
 <style>
-body{font-family:Arial, sans-serif;background:#f1f1f1;padding:20px;margin:0;}
-.container{max-width:600px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,.1);}
-h2{text-align:center;margin-bottom:20px;}
-.detail{margin-bottom:10px;}
-b{display:inline-block;width:120px;}
-hr{margin:15px 0;}
+body{font-family:Arial;background:#f4f4f4;padding:20px;}
+.container{max-width:480px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+input{width:100%;padding:10px;margin-top:5px;border-radius:6px;border:1px solid #ccc;}
+label{font-weight:bold;margin-top:10px;display:block;}
+button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-weight:bold;cursor:pointer;}
 </style>
 </head>
-
 <body>
+
 <div class="container">
-<h2>Nota Pesanan</h2>
-<div id="nota"></div>
+<h2>🧾 Nota Pembelian</h2>
+
+<label>ID Pesanan</label>
+<input type="text" id="orderId" readonly>
+
+<label>Produk</label>
+<input type="text" id="produk">
+
+<label>Jumlah / Paket</label>
+<input type="text" id="jumlah">
+
+<label>Username / Link</label>
+<input type="text" id="username">
+
+<label>Nomor WhatsApp</label>
+<input type="text" id="phone">
+
+<label>Total Harga</label>
+<input type="text" id="harga">
+
+<label>Status Pesanan</label>
+<input type="text" id="status" readonly>
+
+<button onclick="simpanNota()">Simpan Perubahan</button>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
-  databaseURL:"https://web-pesanan-default-rtdb.asia-southeast1.firebasedatabase.app"
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.appspot.com",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const urlParams=new URLSearchParams(window.location.search);
-const orderKey=urlParams.get("id");
+// Ambil orderId dari URL
+const urlParams = new URLSearchParams(window.location.search);
+const orderId = urlParams.get("orderId");
+document.getElementById("orderId").value = orderId;
 
-function loadNota(){
-  get(child(ref(db),"orders/"+orderKey)).then(snapshot=>{
-    if(snapshot.exists()){
-      const data=snapshot.val();
-      document.getElementById("nota").innerHTML=`
-        <div class="detail"><b>ID Pesanan</b>: ${data.orderId}</div>
-        <div class="detail"><b>Layanan</b>: ${data.layanan}</div>
-        <div class="detail"><b>Total</b>: Rp ${data.total}</div>
-        <div class="detail"><b>Status</b>: ${data.status}</div>
-        <div class="detail"><b>Catatan</b>: ${data.note || "-"}</div>
-        <hr>
-        <p>Terima kasih telah berbelanja di <b>ROJA STORE</b></p>
-      `;
-    } else {
-      document.getElementById("nota").innerHTML="<p>Data tidak ditemukan.</p>";
-    }
+// Load data nota
+onValue(ref(db, "orders/" + orderId), (snap)=>{
+  const d = snap.val();
+  document.getElementById("produk").value = d.product;
+  document.getElementById("jumlah").value = d.jumlah;
+  document.getElementById("username").value = d.username;
+  document.getElementById("phone").value = d.phone;
+  document.getElementById("harga").value = "Rp "+ Number(d.harga).toLocaleString();
+  document.getElementById("status").value = d.status;
+});
+
+// simpan perubahan
+window.simpanNota = function(){
+  update(ref(db, "orders/" + orderId),{
+    product: document.getElementById("produk").value,
+    jumlah: document.getElementById("jumlah").value,
+    username: document.getElementById("username").value,
+    phone: document.getElementById("phone").value
+  }).then(()=>{
+    alert("Nota berhasil diperbarui 👍");
   });
-}
-
-loadNota();
+};
 </script>
 
 </body>
