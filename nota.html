@@ -1,90 +1,247 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Nota Pembelian</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Nota Pembelian | ROJA</title>
 <style>
-body{font-family:Arial;background:#f4f4f4;padding:20px;}
-.container{max-width:480px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
-input{width:100%;padding:10px;margin-top:5px;border-radius:6px;border:1px solid #ccc;}
-label{font-weight:bold;margin-top:10px;display:block;}
-button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-weight:bold;cursor:pointer;}
+  body{font-family:Arial, sans-serif;background:#f4f6fb;padding:20px;margin:0;}
+  .container{max-width:520px;margin:20px auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+  .muted{color:#666;font-size:13px;margin-bottom:8px;}
+  h2{margin:0 0 6px;font-size:18px;}
+  .line{border-bottom:1px dashed #ddd;margin:12px 0;}
+  .row{display:flex;justify-content:space-between;margin:6px 0;}
+  .label{color:#333}
+  .value{color:#111;font-weight:600}
+  .big{font-size:18px;font-weight:700;margin-top:10px}
+  .small{font-size:13px;color:#444}
+  button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-weight:700;cursor:pointer}
+  #editArea{display:none;margin-top:10px}
+  input[type="text"], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:6px}
+  .flex{display:flex;gap:8px}
+  .btn-secondary{background:#fff;color:#000;border:1px solid #ddd}
 </style>
 </head>
 <body>
+  <div class="container">
+    <div id="header">
+      <h2 id="productTitle">—</h2>
+      <div class="muted" id="waktuLine">—</div>
+      <div class="muted" id="trxLine">—</div>
+    </div>
 
-<div class="container">
-<h2>🧾 Nota Pembelian</h2>
+    <div class="line"></div>
 
-<label>ID Pesanan</label>
-<input type="text" id="orderId" readonly>
+    <div>
+      <div class="label small">Status Transaksi:</div>
+      <div id="statusText" class="muted big">—</div>
+    </div>
 
-<label>Produk</label>
-<input type="text" id="produk">
+    <div class="line"></div>
 
-<label>Jumlah / Paket</label>
-<input type="text" id="jumlah">
+    <div>
+      <div class="label small">Tanggal Update:</div>
+      <div id="updateText" class="muted">—</div>
+    </div>
 
-<label>Username / Link</label>
-<input type="text" id="username">
+    <div class="line"></div>
 
-<label>Nomor WhatsApp</label>
-<input type="text" id="phone">
+    <h3>Detail Pembayaran</h3>
 
-<label>Total Harga</label>
-<input type="text" id="harga">
+    <div class="row"><div class="label">Harga Produk:</div><div id="hargaText" class="value">Rp 0</div></div>
+    <div class="row"><div class="label">Biaya Admin:</div><div id="adminText" class="value">Rp 0</div></div>
+    <div class="row"><div class="label">Potongan:</div><div id="potongText" class="value">- Rp 0</div></div>
+    <div class="row"><div class="label">Harga Membership:</div><div id="memberText" class="value">+ Rp 0</div></div>
+    <div class="row"><div class="label">Kode Unik:</div><div id="kodeText" class="value">-</div></div>
 
-<label>Status Pesanan</label>
-<input type="text" id="status" readonly>
+    <div class="line"></div>
+    <div class="row"><div class="label">Total Transaksi</div><div id="totalText" class="value big">Rp 0</div></div>
 
-<button onclick="simpanNota()">Simpan Perubahan</button>
-</div>
+    <div id="actions">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="editBtn" onclick="toggleEdit()">Edit Struk</button>
+        <button id="printBtn" class="btn-secondary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+
+    <!-- EDIT AREA: pembeli bisa ubah tampilan struk (disimpan ke customStruk tanpa merubah data asli kecuali diinginkan) -->
+    <div id="editArea">
+      <label>Judul Produk / Keterangan</label>
+      <input type="text" id="editProduct">
+
+      <label>Waktu Transaksi (bebas diedit)</label>
+      <input type="text" id="editWaktu">
+
+      <label>Status Transaksi</label>
+      <input type="text" id="editStatus">
+
+      <label>Harga Produk (angka saja)</label>
+      <input type="text" id="editHarga">
+
+      <label>Biaya Admin (angka saja)</label>
+      <input type="text" id="editAdmin">
+
+      <label>Potongan (angka saja negatif atau 0)</label>
+      <input type="text" id="editPotong">
+
+      <label>Kode Unik (misal: ROJA-748237)</label>
+      <input type="text" id="editKode">
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="saveEdits()">Simpan Perubahan</button>
+        <button class="btn-secondary" onclick="cancelEdit()">Batal</button>
+      </div>
+    </div>
+  </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, query, orderByChild, equalTo, get, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
   authDomain: "database-jualan.firebaseapp.com",
   databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
   projectId: "database-jualan",
-  storageBucket: "database-jualan.appspot.com",
+  storageBucket: "database-jualan.firebasestorage.app",
   messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133"
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Ambil orderId dari URL
-const urlParams = new URLSearchParams(window.location.search);
-const orderId = urlParams.get("orderId");
-document.getElementById("orderId").value = orderId;
+// Ambil orderId dari URL (format: ROJAID-XXXXX)
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("orderId");
 
-// Load data nota
-onValue(ref(db, "orders/" + orderId), (snap)=>{
-  const d = snap.val();
-  document.getElementById("produk").value = d.product;
-  document.getElementById("jumlah").value = d.jumlah;
-  document.getElementById("username").value = d.username;
-  document.getElementById("phone").value = d.phone;
-  document.getElementById("harga").value = "Rp "+ Number(d.harga).toLocaleString();
-  document.getElementById("status").value = d.status;
+if(!orderId){
+  alert("Order ID tidak ditemukan di URL");
+  throw new Error("orderId param missing");
+}
+
+// elemen
+const productTitle = document.getElementById("productTitle");
+const waktuLine = document.getElementById("waktuLine");
+const trxLine = document.getElementById("trxLine");
+const statusText = document.getElementById("statusText");
+const updateText = document.getElementById("updateText");
+const hargaText = document.getElementById("hargaText");
+const adminText = document.getElementById("adminText");
+const potongText = document.getElementById("potongText");
+const memberText = document.getElementById("memberText");
+const kodeText = document.getElementById("kodeText");
+const totalText = document.getElementById("totalText");
+
+const editArea = document.getElementById("editArea");
+const editProduct = document.getElementById("editProduct");
+const editWaktu = document.getElementById("editWaktu");
+const editStatus = document.getElementById("editStatus");
+const editHarga = document.getElementById("editHarga");
+const editAdmin = document.getElementById("editAdmin");
+const editPotong = document.getElementById("editPotong");
+const editKode = document.getElementById("editKode");
+
+let foundKey = null; // push key di Firebase dari order
+
+// cari order berdasarkan field orderId
+const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
+get(q).then(snapshot=>{
+  if(!snapshot.exists()){
+    alert("Data transaksi tidak ditemukan.");
+    return;
+  }
+  snapshot.forEach(child=>{
+    // seharusnya hanya 1 match karena orderId unik
+    const data = child.val();
+    foundKey = child.key;
+
+    // jika ada customStruk simpanan sebelumnya, gunakan untuk tampilan; sebaliknya pakai data default
+    const custom = data.customStruk || {};
+
+    const displayProduct = custom.product || (data.product || "-");
+    const displayWaktu = custom.waktu || (data.waktu || "-");
+    const displayStatus = custom.status || (data.status || "-");
+    const harga = custom.harga !== undefined ? Number(custom.harga) : Number(data.harga || 0);
+    const admin = custom.admin !== undefined ? Number(custom.admin) : 0;
+    const potong = custom.potongan !== undefined ? Number(custom.potongan) : 0;
+    const member = custom.membership !== undefined ? Number(custom.membership) : 0;
+    const kode = custom.kodeUnik || data.kodeUnik || ("ROJA-" + (data.orderId ? data.orderId.split("-")[1] : ""));
+
+    // isi tampilan
+    productTitle.textContent = displayProduct;
+    waktuLine.textContent = `${displayWaktu} WIB •`;
+    trxLine.textContent = `ID. Transaksi: #${data.orderId}`;
+    statusText.textContent = displayStatus;
+    updateText.textContent = data.updateTime || data.waktu || "-";
+    hargaText.textContent = "Rp " + harga.toLocaleString();
+    adminText.textContent = "Rp " + admin.toLocaleString();
+    potongText.textContent = "- Rp " + potong.toLocaleString();
+    memberText.textContent = "+ Rp " + member.toLocaleString();
+    kodeText.textContent = kode;
+    const total = harga + admin - potong + member; // kode unik tidak diikutkan sebagai nominal
+    totalText.textContent = "Rp " + total.toLocaleString();
+
+    // isi edit fields (default)
+    editProduct.value = displayProduct;
+    editWaktu.value = displayWaktu;
+    editStatus.value = displayStatus;
+    editHarga.value = harga;
+    editAdmin.value = admin;
+    editPotong.value = potong;
+    editKode.value = kode;
+  });
+}).catch(err=>{
+  console.error(err);
+  alert("Terjadi kesalahan saat mengambil data.");
 });
 
-// simpan perubahan
-window.simpanNota = function(){
-  update(ref(db, "orders/" + orderId),{
-    product: document.getElementById("produk").value,
-    jumlah: document.getElementById("jumlah").value,
-    username: document.getElementById("username").value,
-    phone: document.getElementById("phone").value
-  }).then(()=>{
-    alert("Nota berhasil diperbarui 👍");
-  });
-};
-</script>
+// toggle edit
+function toggleEdit(){
+  editArea.style.display = editArea.style.display === "none" ? "block" : "none";
+  window.scrollTo(0,document.body.scrollHeight);
+}
 
+function cancelEdit(){
+  editArea.style.display = "none";
+}
+
+// simpan editted struk ke customStruk (tidak menghapus data asli lain)
+function saveEdits(){
+  if(!foundKey){
+    alert("Tidak dapat menemukan key transaksi.");
+    return;
+  }
+
+  // ambil input user
+  const custom = {
+    product: editProduct.value || "",
+    waktu: editWaktu.value || "",
+    status: editStatus.value || "",
+    harga: Number(editHarga.value) || 0,
+    admin: Number(editAdmin.value) || 0,
+    potongan: Number(editPotong.value) || 0,
+    membership: 0,
+    kodeUnik: editKode.value || ""
+  };
+
+  // update customStruk dan updateTime
+  update(ref(db, "orders/" + foundKey + "/customStruk"), custom)
+  .then(()=>{
+    // juga update updateTime field utama supaya admin/riwayat tahu ada pembaruan
+    const now = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+    return update(ref(db, "orders/" + foundKey), { updateTime: now });
+  })
+  .then(()=>{
+    alert("Struk berhasil disimpan.");
+    location.reload();
+  })
+  .catch(err=>{
+    console.error(err);
+    alert("Gagal menyimpan perubahan.");
+  });
+}
+</script>
 </body>
-</html>
+        </html>
+        
