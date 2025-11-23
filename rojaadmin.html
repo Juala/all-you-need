@@ -2,29 +2,50 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROJA ADMIN | Kupon Diskon</title>
+<title>ROJA ADMIN - Data Pesanan</title>
 <style>
-body { font-family: Arial, sans-serif; padding:20px; background:#f4f4f4; }
-input { width:100%; padding:10px; margin:5px 0; }
-button { padding:10px 15px; margin-top:10px; cursor:pointer; }
-table{ width:100%; border-collapse:collapse; margin-top:15px }
-th,td{ border:1px solid #ccc; padding:8px; text-align:center }
-th{ background:#eaeaea }
+body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;}
+th{background:#333;color:#fff;}
+input{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;}
+button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<h2>Manajemen Kupon Diskon</h2>
+<div class="container">
+<h2>📦 Data Pesanan Masuk</h2>
 
-<h3>Buat Kupon Baru</h3>
-<input id="kodeKupon" placeholder="Kode Kupon contoh: DISKON10">
-<input id="nilaiKupon" type="number" placeholder="Nilai potongan contoh: 10000">
-<input id="masaKupon" type="date">
-<input id="limitKupon" type="number" placeholder="Limit pemakaian (0 = unlimited)">
-<button onclick="buatKupon()" style="background:#008000;color:white;">Tambah Kupon</button>
+<input type="text" id="search" placeholder="Cari berdasarkan ROJAID-XXXXX">
 
-<h3>Daftar Kupon Aktif</h3>
+<!-- FITUR TAMBAH KUPON -->
+<h3 style="margin-top:25px;">🎟 Tambah Kupon Diskon</h3>
+<input type="text" id="kodeKupon" placeholder="Kode Kupon (ex: DISKON10)">
+<input type="number" id="nilaiKupon" placeholder="Nilai Potongan (ex: 10000)">
+<input type="date" id="masaKupon">
+<input type="number" id="limitKupon" placeholder="Limit pemakaian (0 = unlimited)">
+<button style="background:#008000;color:white;" onclick="buatKupon()">Tambah Kupon</button>
+
+<!-- TABEL PESANAN -->
+<table>
+<thead>
+<tr>
+<th>ID Pesanan</th>
+<th>Nama</th>
+<th>WA</th>
+<th>Produk</th>
+<th>Total</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="orderTable"></tbody>
+</table>
+
+<!-- TABEL KUPON -->
+<h3 style="margin-top:25px;">📑 Daftar Kupon Aktif</h3>
 <table>
 <thead>
 <tr>
@@ -39,43 +60,104 @@ th{ background:#eaeaea }
 <tbody id="kuponBody"></tbody>
 </table>
 
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "ISI_API_KEY",
-  authDomain: "ISI_DOMAIN.firebaseapp.com",
-  databaseURL: "https://ISI.firebaseio.com",
-  projectId: "ISI_PROJECT",
-  storageBucket: "ISI.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXXX"
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.appspot.com",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+const table = document.getElementById("orderTable");
+const search = document.getElementById("search");
+const kuponBody = document.getElementById("kuponBody");
+
+let dataOrders = [];
+
+// LIST PESANAN
+onValue(ref(db, "orders"), (snapshot)=>{
+    table.innerHTML = "";
+    dataOrders = [];
+
+    snapshot.forEach(child=>{
+        dataOrders.push(child.val());
+    });
+
+    renderTable(dataOrders);
+});
+
+function renderTable(list){
+  table.innerHTML = "";
+  list.forEach(data=>{
+    const showNameProducts = ["followers_ig","followers_tt","likes_ig","likes_tt"];
+    const nama = showNameProducts.includes(data.product) ? (data.username ?? "-") : "-";
+
+    table.innerHTML += `
+    <tr>
+        <td>${data.orderId ?? ""}</td>
+        <td>${nama}</td>
+        <td>${data.phone ?? ""}</td>
+        <td>${data.product ?? "-"}</td>
+        <td>Rp ${Number(data.harga ?? 0).toLocaleString("id-ID")}</td>
+        <td>
+          <select onchange="updateStatus('${data.orderId}', this.value)">
+            <option ${data.status=="Pending"?"selected":""}>Pending</option>
+            <option ${data.status=="Proses"?"selected":""}>Proses</option>
+            <option ${data.status=="Success"?"selected":""}>Success</option>
+            <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
+          </select>
+        </td>
+        <td><button onclick="deleteOrder('${data.orderId}')" style="background:#e91e63;color:white;">Hapus</button></td>
+    </tr>`;
+  });
+}
+
+search.addEventListener("keyup", ()=>{
+  const keyword = search.value.toUpperCase();
+  const filtered = dataOrders.filter(item=> item.orderId.toUpperCase().includes(keyword));
+  renderTable(filtered);
+});
+
+window.updateStatus = function(id, status){
+  update(ref(db, "orders/" + id), {status});
+}
+
+window.deleteOrder = function(id){
+  if(confirm("Yakin ingin menghapus pesanan ini?")){
+    remove(ref(db, "orders/" + id));
+  }
+}
+
+// FUNGSI TAMBAH KUPON
 window.buatKupon = function(){
   const kode = document.getElementById("kodeKupon").value.toUpperCase();
   const value = Number(document.getElementById("nilaiKupon").value);
   const expires = document.getElementById("masaKupon").value;
   const limit = Number(document.getElementById("limitKupon").value);
 
-  if(!kode || !value) return alert("Isi kode dan nilai!");
+  if(!kode || !value) return alert("Isi kode & nilai kupon.");
 
-  set(ref(db,"coupons/"+kode), {
+  set(ref(db, "coupons/" + kode), {
     value,
     expires: expires || "",
     limit: limit || 0,
     used: 0
-  }).then(()=> alert("Kupon dibuat!"));
+  }).then(()=> alert("Kupon berhasil ditambahkan!"));
 };
 
-// tampilkan daftar kupon realtime
-const kuponBody = document.getElementById("kuponBody");
-
-onValue(ref(db,"coupons"), (snapshot)=>{
+// LIST & HAPUS KUPON
+onValue(ref(db, "coupons"), (snapshot)=>{
   kuponBody.innerHTML="";
   snapshot.forEach(child=>{
     const kode = child.key;
@@ -95,8 +177,8 @@ onValue(ref(db,"coupons"), (snapshot)=>{
 });
 
 window.hapusKupon = function(kode){
-  if(confirm("Hapus kupon "+kode+"?")){
-    remove(ref(db,"coupons/"+kode));
+  if(confirm("Yakin ingin menghapus kupon "+ kode +"?")){
+    remove(ref(db, "coupons/" + kode));
   }
 };
 </script>
