@@ -3,135 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Struk Pembelian | ROJA STORE</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+<title>Nota Transaksi</title>
 <style>
-body { font-family: Arial, sans-serif; background:#ffffff; margin:0; padding:15px; }
-.label { font-weight:bold; margin-top:10px; }
-.value { margin-top:3px; }
-button { padding:10px 14px; border:none; border-radius:6px; cursor:pointer; font-size:15px; }
-
-#editModal{
-  display:none; position:fixed; left:0; top:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); justify-content:center; align-items:center;
-}
-.modal-box{
-  background:#fff; padding:20px; border-radius:10px; width:280px;
-}
-input{ width:100%; padding:10px; margin-top:10px; border:1px solid #aaa; border-radius:6px; }
+body{font-family:Arial;background:#f5f5f5;margin:0;padding:20px;}
+.container{max-width:450px;background:#fff;margin:auto;padding:20px;border-radius:12px;
+box-shadow:0 0 10px rgba(0,0,0,0.15);}
+h2{text-align:center;margin-top:0;}
+.data-box{margin-top:10px;font-size:15px;}
+.label{font-weight:bold;color:#333;}
+.value{float:right;color:#000;}
+.btn-box{display:flex;gap:10px;}
+button{margin-top:20px;width:100%;padding:12px;border:none;border-radius:8px;background:#007bff;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+#editBtn{background:#28a745;}
 </style>
 </head>
-
 <body>
 
-<h2 style="text-align:center;">STRUK PEMBELIAN</h2>
+<div class="container" id="nota">
+<h2>Detail Transaksi</h2>
+<hr style="margin:10px 0;">
 
-<div id="strukSection">
-    <div class="label">Kode Transaksi</div>
-    <div class="value" id="kodeTransaksi"></div>
+<div class="data-box"><span class="label">Nama Produk:</span><span class="value" id="product"></span></div>
+<div class="data-box"><span class="label">Jumlah:</span><span class="value" id="jumlah"></span></div>
+<div class="data-box"><span class="label">Nomor WhatsApp:</span><span class="value" id="phone"></span></div>
+<div class="data-box"><span class="label">Username / Link:</span><span class="value" id="username"></span></div>
+<div class="data-box"><span class="label">Status Transaksi:</span><span class="value" id="status"></span></div>
 
-    <div class="label">Nama Pembeli</div>
-    <div class="value" id="namaPembeli"></div>
+<hr style="margin:10px 0;">
+<div class="data-box"><span class="label">Total:</span><span class="value" id="harga"></span></div>
+<div class="data-box"><span class="label">ID Transaksi:</span><span class="value" id="orderId"></span></div>
+<div class="data-box"><span class="label">Tanggal:</span><span class="value" id="waktu"></span></div>
 
-    <div class="label">Produk</div>
-    <div class="value" id="produk"></div>
-
-    <div class="label">Harga</div>
-    <div class="value" id="hargaView"></div>
-</div><br>
-
-<div style="display:flex; gap:10px;">
-    <button onclick="window.print()" style="background:#2196F3;color:white;">Cetak Struk</button>
-    <button id="editBtn" style="background:#ff9800;color:white;">Edit Struk</button>
+<div class="btn-box">
+<button id="printBtn">Cetak Struk (PNG)</button>
+<button id="editBtn">Edit Harga</button>
+</div>
 </div>
 
-<br>
-<button onclick="sendToWA()" style="width:100%;background:#4CAF50;color:white;">
-    Kirim ke WhatsApp
-</button>
+<!-- html2canvas untuk convert PNG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, onValue, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
-<!-- MODAL -->
-<div id="editModal">
-    <div class="modal-box">
-        <h3>Edit Harga Produk</h3>
-        <input type="number" id="editHarga">
-        <button onclick="simpanHarga()" style="background:#4CAF50;color:white;margin-top:10px;width:100%;">Simpan</button>
-    </div>
-</div>
-
-
-<script>
-// Firebase Config
-var firebaseConfig = {
-  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
-  authDomain: "database-jualan.firebaseapp.com",
-  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
-  projectId: "database-jualan",
-  storageBucket: "database-jualan.firebasestorage.app",
-  messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133",
+const firebaseConfig = {
+ apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+ authDomain: "database-jualan.firebaseapp.com",
+ databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+ projectId: "database-jualan",
+ storageBucket: "database-jualan.firebasestorage.app",
+ messagingSenderId: "766732892106",
+ appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
-firebase.initializeApp(firebaseConfig);
 
-const params = new URLSearchParams(window.location.search);
-const idTransaksi = params.get("id");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-let harga = 0;
-let nomorWA = "";
+// Ambil orderId dari URL
+const orderId = new URLSearchParams(window.location.search).get("orderId");
 
-// Ambil data struk dari database
-firebase.database().ref("orders/" + idTransaksi).once("value").then(snap => {
-    const data = snap.val();
+const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
 
-    document.getElementById("kodeTransaksi").innerText = data.kode;
-    document.getElementById("namaPembeli").innerText = data.nama;
-    document.getElementById("produk").innerText = data.produk;
-    document.getElementById("hargaView").innerText = "Rp " + data.harga;
+let key = "";
+onValue(q, snapshot=>{
+ snapshot.forEach(child=>{
+   key = child.key;
+   const d = child.val();
 
-    harga = data.harga;
-    nomorWA = data.wa;
+   document.getElementById("product").textContent = d.product;
+   document.getElementById("jumlah").textContent = d.jumlah;
+   document.getElementById("phone").textContent = d.phone;
+   document.getElementById("username").textContent = d.username || "-";
+   document.getElementById("status").textContent = d.status;
+   document.getElementById("harga").textContent = "Rp " + Number(d.harga).toLocaleString();
+   document.getElementById("orderId").textContent = d.orderId;
+   document.getElementById("waktu").textContent = d.waktu;
+
+   // CETAK PNG DAN KIRIM WA
+   document.getElementById("printBtn").onclick = async ()=>{
+     const nota = document.getElementById("nota");
+     const canvas = await html2canvas(nota);
+     const img = canvas.toDataURL("image/png");
+     const blob = await (await fetch(img)).blob();
+     const file = new File([blob], `STRUK-${d.orderId}.png`, { type: "image/png" });
+
+     const wa = `https://wa.me/${d.phone}?text=${encodeURIComponent("Berikut struk pembelian Anda 😊")}`;
+     window.location.href = wa;
+     setTimeout(()=>{navigator.share({ files:[file], title:"Struk Pembelian" })},1500);
+   };
+
+   // EDIT HARGA
+   document.getElementById("editBtn").onclick = ()=>{
+     const newPrice = prompt("Masukkan harga baru (angka saja):");
+     if(!newPrice || isNaN(newPrice)) return alert("Harga tidak valid!");
+     update(ref(db, "orders/"+key),{ harga:newPrice });
+     alert("Harga berhasil diperbarui");
+     location.reload();
+   };
+ });
 });
-
-// Buka popup edit
-document.getElementById("editBtn").addEventListener("click", () => {
-    document.getElementById("editModal").style.display = "flex";
-    document.getElementById("editHarga").value = harga;
-});
-
-// Simpan perubahan harga
-function simpanHarga() {
-    const hargaBaru = document.getElementById("editHarga").value;
-
-    firebase.database().ref("orders/" + idTransaksi).update({
-        harga: hargaBaru
-    }).then(() => {
-        alert("Harga berhasil diperbarui!");
-        location.reload();
-    });
-}
-
-// Kirim struk PNG ke WA
-function sendToWA(){
-    html2canvas(document.getElementById("strukSection")).then(canvas => {
-        canvas.toBlob(function(blob) {
-            const file = new File([blob], "Struk-ROJA.png", { type: "image/png" });
-            const formData = new FormData();
-            formData.append("file", file);
-
-            fetch(`https://API_WHATSAPP_KAMU/send-media?number=${nomorWA}`, {
-                method:"POST",
-                body:formData
-            }).then(()=>alert("Struk berhasil dikirim ke WhatsApp!"))
-            .catch(()=>alert("Gagal mengirim struk"));
-        });
-    });
-}
 </script>
-
 </body>
 </html>
