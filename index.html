@@ -149,17 +149,36 @@ const kuponInput = document.getElementById("kupon");
 const applyKupon = document.getElementById("applyKupon");
 const kuponMsg = document.getElementById("kuponMsg");
 
-// CEK KUPON DISKON
+// =============================================
+//      CEK KUPON + VALIDASI PRODUK TARGET
+// =============================================
 applyKupon.addEventListener("click", ()=>{
   const kode = kuponInput.value.trim().toUpperCase();
+  const produkDipilih = productSelect.value;
   if(!kode) return;
 
   get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
     if(snapshot.exists()){
-      potongan = Number(snapshot.val().value);
+
+      const dataKupon = snapshot.val();
+      const produkKupon = dataKupon.produk; // PRODUK TARGET KUPON
+      potongan = Number(dataKupon.value);
+
+      // ======================================================
+      //          VALIDASI PRODUK HARUS COCOK
+      // ======================================================
+      if(produkKupon !== produkDipilih){
+        potongan = 0;
+        kuponMsg.style.color="red";
+        kuponMsg.textContent = "❌ Kupon tidak cocok untuk produk ini!";
+        return;
+      }
+
+      // Jika cocok
       kuponMsg.style.color="green";
       kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
       priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
+
     } else {
       potongan = 0;
       kuponMsg.style.color="red";
