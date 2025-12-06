@@ -19,6 +19,9 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 .flex{display:flex;gap:8px;align-items:center}
 .note{font-size:13px;color:#555;margin-top:6px}
 .pre{font-family:monospace;background:#f8f8f8;padding:8px;border-radius:6px;border:1px solid #eee}
+
+/* Keep multi-select visually compact so it doesn't disrupt layout */
+#produkKupon {height: auto; min-height: 44px; max-height: 160px;}
 </style>
 </head>
 <body>
@@ -32,6 +35,10 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 <h3 style="margin-top:25px;">🎟 Tambah Kupon Diskon</h3>
 <input type="text" id="kodeKupon" placeholder="Kode Kupon (ex: DISKON10)">
 <input type="number" id="nilaiKupon" placeholder="Nilai Potongan (ex: 10000)">
+<!-- tambahan: pilih produk untuk kupon (multi) -->
+<label style="margin-top:8px;font-size:13px;color:#333">Pilih Produk yang mendapat potongan (Ctrl/Cmd+klik untuk pilih banyak) :</label>
+<select id="produkKupon" multiple size="4" title="Ctrl/Cmd+klik untuk pilih beberapa produk"></select>
+
 <input type="date" id="masaKupon">
 <input type="number" id="limitKupon" placeholder="Limit pemakaian (0 = unlimited)">
 <button style="background:#008000;color:white;" onclick="buatKupon()">Tambah Kupon</button>
@@ -58,7 +65,7 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
   <button onclick="kirimAkunDanWA();" style="background:#4CAF50;color:white;">Kirim & Kirim WA (opsional)</button>
   <button onclick="previewExample()" style="background:#777;color:white;">Lihat Contoh Tampilan</button>
 </div>
-<div class="note">Catatan: fungsi ini akan mencari pesanan berdasarkan <code>orderId</code> di node <code>/orders</code> dan menambahkan field <code>account</code> (atau <code>sn_token</code jika dipilih) ke pesanan tersebut. Data akan langsung tampil di riwayat pelanggan.</div>
+<div class="note">Catatan: fungsi ini akan mencari pesanan berdasarkan <code>orderId</code> di node <code>/orders</code> dan menambahkan field <code>account</code> (atau <code>sn_token</code> jika dipilih) ke pesanan tersebut. Data akan langsung tampil di riwayat pelanggan.</div>
 
 <!-- TABEL PESANAN -->
 <h3 style="margin-top:25px;">📦 Tabel Pesanan</h3>
@@ -86,6 +93,7 @@ button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
 <tr>
 <th>Kode</th>
 <th>Potongan</th>
+<th>Produk</th>
 <th>Expired</th>
 <th>Limit</th>
 <th>Used</th>
@@ -117,6 +125,7 @@ const db = getDatabase(app);
 const table = document.getElementById("orderTable");
 const search = document.getElementById("search");
 const kuponBody = document.getElementById("kuponBody");
+const produkKuponSelect = document.getElementById("produkKupon");
 
 let dataOrders = [];
 
@@ -210,7 +219,7 @@ window.salinAkun = function(key){
   });
 }
 
-// FUNGSI TAMBAH KUPON
+// --- FUNGSI TAMBAH KUPON (DITAMBAHKAN PILIH PRODUK) ---
 window.buatKupon = function(){
   const kode = document.getElementById("kodeKupon").value.trim().toUpperCase();
   const value = Number(document.getElementById("nilaiKupon").value);
@@ -219,28 +228,58 @@ window.buatKupon = function(){
 
   if(!kode || !value) return alert("Isi kode & nilai kupon.");
 
+  // ambil pilihan produk (multi)
+  const produkSelected = Array.from(produkKuponSelect.options)
+    .filter(opt => opt.selected)
+    .map(opt => opt.value)
+    .filter(v => v && v !== ""); // filter kosong
+
+  // jika tidak memilih produk, anggap berlaku untuk semua produk
+  const productsToSave = (produkSelected.length === 0) ? ["ALL"] : produkSelected;
+
   set(ref(db, "coupons/" + kode), {
     value,
     expires: expires || "",
     limit: limit || 0,
-    used: 0
-  }).then(()=> { alert("Kupon berhasil ditambahkan!"); });
+    used: 0,
+    products: productsToSave
+  }).then(()=> { 
+    alert("Kupon berhasil ditambahkan!");
+    // reset fields (optional)
+    document.getElementById("kodeKupon").value = "";
+    document.getElementById("nilaiKupon").value = "";
+    document.getElementById("masaKupon").value = "";
+    document.getElementById("limitKupon").value = "";
+    // clear selection
+    Array.from(produkKuponSelect.options).forEach(o => o.selected = false);
+  }).catch(err=>{
+    console.error(err);
+    alert("Gagal membuat kupon: " + err.message);
+  });
 };
 
-// LIST & HAPUS KUPON
+// LIST & HAPUS KUPON (tampilan diperbarui untuk menampilkan products)
 onValue(ref(db, "coupons"), (snapshot)=>{
   kuponBody.innerHTML="";
   snapshot.forEach(child=>{
     const kode = child.key;
     const data = child.val();
 
+    // format produk untuk tampilan
+    let produkDisplay = "-";
+    if(Array.isArray(data.products)){
+      if(data.products.includes("ALL")) produkDisplay = "Semua Produk";
+      else produkDisplay = data.products.join(", ");
+    }
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${kode}</td>
-      <td>Rp ${data.value.toLocaleString()}</td>
+      <td>Rp ${Number(data.value).toLocaleString()}</td>
+      <td style="max-width:260px;word-break:break-word">${produkDisplay}</td>
       <td>${data.expires || "Selamanya"}</td>
       <td>${data.limit == 0 ? "Unlimited" : data.limit}</td>
-      <td>${data.used}</td>
+      <td>${data.used ?? 0}</td>
       <td><button onclick="hapusKupon('${kode}')" class="small-btn danger">Hapus</button></td>
     `;
     kuponBody.appendChild(tr);
@@ -252,6 +291,61 @@ window.hapusKupon = function(kode){
     remove(ref(db, "coupons/" + kode));
   }
 };
+
+/* LOAD PRODUCTS TO SELECT (ambil dari node 'products' jika ada, fallback ke daftar umum) */
+async function loadProducts(){
+  const prodRef = ref(db, "products");
+  try {
+    const snap = await get(prodRef);
+    let products = [];
+
+    if(snap.exists()){
+      // expecting products node as { productId: { name: "...", price: ... } } OR array-like
+      const val = snap.val();
+      // normalize to array of {id, name}
+      if(Array.isArray(val)){
+        products = val.map((v,i)=>({ id: v.id ?? ("p"+i), name: v.name ?? v.nama ?? v.title ?? JSON.stringify(v) }));
+      } else {
+        products = Object.keys(val).map(k => ({ id: k, name: val[k].name ?? val[k].nama ?? k }));
+      }
+    } else {
+      // fallback default produk list (sesuaikan jika perlu)
+      products = [
+        { id: "followers_ig", name: "Followers Instagram Indonesia" },
+        { id: "followers_tt", name: "Followers TikTok Indonesia" },
+        { id: "likes_ig", name: "Like Instagram Indonesia" },
+        { id: "likes_tt", name: "Like TikTok Indonesia" },
+        { id: "app_prem", name: "App Premium" }
+      ];
+    }
+
+    // clear current
+    produkKuponSelect.innerHTML = "";
+    // add helper option for ALL
+    const optAll = document.createElement("option");
+    optAll.value = "ALL";
+    optAll.textContent = "Semua Produk (Pilih jika berlaku ke semua)";
+    produkKuponSelect.appendChild(optAll);
+
+    products.forEach(p=>{
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      produkKuponSelect.appendChild(opt);
+    });
+  } catch(err){
+    console.error("Gagal load products:", err);
+    // fallback minimal
+    produkKuponSelect.innerHTML = `
+      <option value="ALL">Semua Produk (Pilih jika berlaku ke semua)</option>
+      <option value="followers_ig">Followers Instagram Indonesia</option>
+      <option value="followers_tt">Followers TikTok Indonesia</option>
+      <option value="likes_ig">Like Instagram Indonesia</option>
+      <option value="likes_tt">Like TikTok Indonesia</option>
+      <option value="app_prem">App Premium</option>
+    `;
+  }
+}
 
 /* ========== FITUR KIRIM DATA AKUN ========== */
 async function kirimAkun(){
@@ -293,6 +387,11 @@ function previewExample(){
   const imgPath = "/mnt/data/Screenshot_20251124_010151.jpg";
   window.open(imgPath, "_blank");
 }
+
+/* Inisialisasi saat load */
+window.addEventListener("load", ()=>{
+  loadProducts();
+});
 </script>
 </body>
 </html>
