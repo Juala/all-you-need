@@ -32,10 +32,13 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
   <option value="likes_ig">Like Instagram Indonesia</option>
   <option value="likes_tt">Like TikTok Indonesia</option>
   <option value="app_prem">App Premium</option>
+
+  <!-- MENU BARU -->
+  <option value="fast">Fast Rekomendet ⚡</option>
 </select>
 
 <div id="jumlahBox" class="hidden">
-<label>Pilih Jumlah:</label>
+<label id="labelJumlah">Pilih Jumlah:</label>
 <select id="jumlah"></select>
 </div>
 
@@ -65,7 +68,9 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 </div>
 
 <script>
-// List harga
+// --------------------------
+// HARGA LAMA
+// --------------------------
 const harga = {
   followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
@@ -100,26 +105,64 @@ const usernameInput=document.getElementById("username");
 const labelUsername=document.getElementById("labelUsername");
 const phoneInput=document.getElementById("phone");
 const historyList=document.getElementById("historyList");
-
 let potongan = 0;
 let totalAwal = 0;
 
-// FIX BUG: hapus event listener ganda
-productSelect.addEventListener("change", function(){
+let fastProducts = []; // dari API
 
+// --------------------------
+// FETCH PRODUK FAST
+// --------------------------
+async function loadFastProducts() {
+  const res = await fetch("https://premiumku.store/api/products", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ api_key:"6ce970a90c5663043e8958ee251a7160" })
+  });
+
+  const data = await res.json();
+  if(data.success){
+    fastProducts = data.products;
+  }
+}
+
+loadFastProducts();
+
+// --------------------------
+// PRODUK DIPILIH
+// --------------------------
+productSelect.addEventListener("change", async function(){
   const prod = this.value;
   jumlahSelect.innerHTML = "";
   priceDiv.classList.add("hidden");
+  usernameInput.classList.add("hidden");
+  labelUsername.classList.add("hidden");
+
+  // ----- jika layanan fast -----
+  if(prod === "fast"){
+    jumlahBox.classList.remove("hidden");
+    document.getElementById("labelJumlah").innerText = "Pilih Produk Fast:";
+
+    if(fastProducts.length === 0) await loadFastProducts();
+
+    fastProducts.forEach(p=>{
+      jumlahSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`;
+    });
+
+    totalAwal = fastProducts[0].price;
+    priceDiv.textContent = "Total: Rp " + totalAwal.toLocaleString();
+    priceDiv.classList.remove("hidden");
+    return;
+  }
+
+  // ----- layanan biasa -----
+  jumlahBox.classList.remove("hidden");
+  document.getElementById("labelJumlah").innerText = "Pilih Jumlah:";
 
   if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
     usernameInput.classList.remove("hidden");
     labelUsername.classList.remove("hidden");
-  } else {
-    usernameInput.classList.add("hidden");
-    labelUsername.classList.add("hidden");
   }
-
-  jumlahBox.classList.remove("hidden");
 
   const list = prod==="app_prem" ? harga.app_prem : harga[prod];
   Object.keys(list).forEach(item=>{
@@ -131,16 +174,80 @@ productSelect.addEventListener("change", function(){
   priceDiv.classList.remove("hidden");
 });
 
-// FIX: Listener jumlah dipisah agar tidak duplikat
+// --------------------------
+// JUMLAH DIUBAH
+// --------------------------
 jumlahSelect.addEventListener("change", ()=>{
   const prod = productSelect.value;
+
+  if(prod === "fast"){
+    let hargaItem = jumlahSelect.selectedOptions[0].dataset.price;
+    totalAwal = Number(hargaItem);
+    priceDiv.textContent = "Total: Rp " + totalAwal.toLocaleString();
+    return;
+  }
+
   const list = prod==="app_prem" ? harga.app_prem : harga[prod];
   totalAwal = list[jumlahSelect.value];
   priceDiv.textContent = "Total: Rp " + (totalAwal - potongan).toLocaleString();
 });
+
+// --------------------------
+// SUBMIT ORDER
+// --------------------------
+document.getElementById("orderForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const product = productSelect.value;
+  const phone = phoneInput.value;
+  const username = usernameInput.value;
+  const jumlah = jumlahSelect.value;
+
+  // --------------------------
+  // JIKA FAST REKOMENDET
+  // --------------------------
+  if(product === "fast"){
+
+    const body = {
+      api_key:"6ce970a90c5663043e8958ee251a7160",
+      product_id: Number(jumlah),
+      qty: 1,
+      whatsapp: phone
+    };
+
+    const res = await fetch("https://premiumku.store/api/order", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if(!data.success){
+      alert("Order gagal: " + data.message);
+      return;
+    }
+
+    alert("Fast Order berhasil dibuat! Invoice: "+data.invoice);
+
+    window.location.href =
+      `nota.html?orderId=${data.invoice}&product=${data.product}&jumlah=1&phone=${phone}&harga=${data.total}`;
+
+    return;
+  }
+
+  // --------------------------
+  // ORDER BIASA (FIREBASE)
+  // --------------------------
+  const totalHarga = totalAwal - potongan;
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+
+  window.location.href =
+   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
+});
 </script>
 
-<!-- FIREBASE -->
+<!-- FIREBASE LAMA TETAP DI BAWAH -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
@@ -162,7 +269,7 @@ const kuponInput = document.getElementById("kupon");
 const applyKupon = document.getElementById("applyKupon");
 const kuponMsg = document.getElementById("kuponMsg");
 
-// CEK KUPON DISKON
+// CEK KUPON
 applyKupon.addEventListener("click", ()=>{
   const kode = kuponInput.value.trim().toUpperCase();
   if(!kode) return;
@@ -172,43 +279,12 @@ applyKupon.addEventListener("click", ()=>{
       potongan = Number(snapshot.val().value);
       kuponMsg.style.color="green";
       kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
-      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
     } else {
       potongan = 0;
       kuponMsg.style.color="red";
       kuponMsg.textContent = "Kupon tidak valid!";
     }
   });
-});
-
-// SUBMIT ORDER
-document.getElementById("orderForm").addEventListener("submit", async function(e){
-  e.preventDefault();
-  const product = productSelect.value;
-  const jumlah = jumlahSelect.value;
-  const phone = phoneInput.value;
-  const username = usernameInput.value;
-  const totalHarga = totalAwal - potongan;
-
-  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
-  const kodeUnik = "ROJA-" + orderId.split("-")[1];
-
-  const newOrderRef = push(ref(db, "orders"));
-  set(newOrderRef, {
-    orderId,
-    kodeUnik,
-    product,
-    jumlah,
-    phone,
-    username,
-    harga: totalHarga,
-    status: "Pending",
-    waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
-    updateTime: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
-  });
-
-  window.location.href =
-   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
 });
 
 // LOAD HISTORY
@@ -248,4 +324,5 @@ window.addEventListener("load", loadHistory);
 </script>
 
 </body>
-</html>
+  </html>
+  
