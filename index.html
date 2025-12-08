@@ -25,21 +25,20 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 
 <form id="orderForm">
 
-<!-- PILIH METODE ORDER -->
 <label>Metode Order:</label>
 <select id="metodeOrder" required>
-  <option value="biasa">Order Biasa</option>
-  <option value="fast">Order FAST (Premiumku)</option>
+  <option value="biasa">Order Biasa</option>
+  <option value="fast">Order FAST (Premiumku)</option>
 </select>
 
 <label>Pilih Produk:</label>
 <select id="product" required>
-  <option value="">-- Pilih Produk --</option>
-  <option value="followers_ig">Followers Instagram Indonesia</option>
-  <option value="followers_tt">Followers TikTok Indonesia</option>
-  <option value="likes_ig">Like Instagram Indonesia</option>
-  <option value="likes_tt">Like TikTok Indonesia</option>
-  <option value="app_prem">App Premium</option>
+  <option value="">-- Pilih Produk --</option>
+  <option value="followers_ig">Followers Instagram Indonesia</option>
+  <option value="followers_tt">Followers TikTok Indonesia</option>
+  <option value="likes_ig">Like Instagram Indonesia</option>
+  <option value="likes_tt">Like TikTok Indonesia</option>
+  <option value="app_prem">App Premium</option>
 </select>
 <div class="loading" id="loadingFast">Mengambil produk FAST...</div>
 
@@ -54,7 +53,6 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <label id="labelPhone">Nomor WhatsApp:</label>
 <input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
 
-<!-- INPUT KUPON DISKON -->
 <label>Kode Kupon (opsional):</label>
 <input type="text" id="kupon" placeholder="Masukkan kode kupon">
 <button type="button" id="applyKupon" style="margin-top:10px;background:#008000;color:white;font-weight:bold;">Terapkan Kupon</button>
@@ -65,7 +63,6 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 <button type="submit">Order Sekarang</button>
 </form>
 
-<!-- Riwayat Transaksi -->
 <div id="history">
 <h3>Riwayat Transaksi:</h3>
 <div id="historyList">Belum ada transaksi.</div>
@@ -78,33 +75,33 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 // KODE LAMA (TIDAK DIUBAH)
 // ---------------------------
 const harga={
-  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
-  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
-  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
-  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
-  app_prem:{
-    "Netflix 1 Bulan":45000,
-    "Spotify Premium 1 Bulan (No Garansi)":15000,
-    "Spotify Premium 1 Bulan (Full Garansi)":30000,
-    "Alight Motion Premium 1 Tahun":10000,
-    "YouTube Premium Famplan 1 Bulan":10000,
-    "YouTube Premium Mixplan 1 Bulan":17000,
-    "YouTube Premium Famplan 2 Bulan":20000,
-    "YouTube Premium Mixplan 3 Bulan":36000,
-    "YouTube Premium Mixplan + email 3 Bulan":40000,
-    "Capcut Premium 1 Bulan":20000,
-    "Gemini Premium 1 Tahun + 2TB":35000,
-    "GPT Premium 1 Bulan":30000,
-    "Vidio Premium 1 Bulan (TV)":30000,
-    "Vidio Premium 1 Bulan (Mobile)":35000,
-    "Vidio Premium 1 Bulan (All Device)":42000,
-    "Canva Premium 1 Bulan":5000,
-    "Canva Premium 1 Bulan + Designer":10000
-  }
+  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+  app_prem:{
+    "Netflix 1 Bulan":45000,
+    "Spotify Premium 1 Bulan (No Garansi)":15000,
+    "Spotify Premium 1 Bulan (Full Garansi)":30000,
+    "Alight Motion Premium 1 Tahun":10000,
+    "YouTube Premium Famplan 1 Bulan":10000,
+    "YouTube Premium Mixplan 1 Bulan":17000,
+    "YouTube Premium Famplan 2 Bulan":20000,
+    "YouTube Premium Mixplan 3 Bulan":36000,
+    "YouTube Premium Mixplan + email 3 Bulan":40000,
+    "Capcut Premium 1 Bulan":20000,
+    "Gemini Premium 1 Tahun + 2TB":35000,
+    "GPT Premium 1 Bulan":30000,
+    "Vidio Premium 1 Bulan (TV)":30000,
+    "Vidio Premium 1 Bulan (Mobile)":35000,
+    "Vidio Premium 1 Bulan (All Device)":42000,
+    "Canva Premium 1 Bulan":5000,
+    "Canva Premium 1 Bulan + Designer":10000
+  }
 };
 
 const metodeOrder = document.getElementById("metodeOrder");
-let productSelect=document.getElementById("product"); // kept as let to allow reassignment internally
+let productSelect=document.getElementById("product"); 
 const jumlahSelect=document.getElementById("jumlah");
 const jumlahBox=document.getElementById("jumlahBox");
 const priceDiv=document.getElementById("priceDisplay");
@@ -116,240 +113,195 @@ const historyList=document.getElementById("historyList");
 let potongan = 0;
 let totalAwal = 0;
 
-// guard flag for fast mode
 window.isFastMode = false;
 
 // tampil harga otomatis
 productSelect.addEventListener("change",function(){
-  // Jika sedang Fast Mode, skip handler asli (kami tangani secara terpisah)
-  if(window.isFastMode) return;
+  if(window.isFastMode) return;
 
-  const prod=this.value;
-  jumlahSelect.innerHTML="";
-  priceDiv.classList.add("hidden");
+  const prod=this.value;
+  jumlahSelect.innerHTML="";
+  priceDiv.classList.add("hidden");
 
-  if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
-    usernameInput.classList.remove("hidden");
-    labelUsername.classList.remove("hidden");
-  } else {
-    usernameInput.classList.add("hidden");
-    labelUsername.classList.add("hidden");
-  }
+  if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
+    usernameInput.classList.remove("hidden");
+    labelUsername.classList.remove("hidden");
+  } else {
+    usernameInput.classList.add("hidden");
+    labelUsername.classList.add("hidden");
+  }
 
-  jumlahBox.classList.remove("hidden");
-  const list = prod==="app_prem"?harga.app_prem:harga[prod];
+  jumlahBox.classList.remove("hidden");
+  const list = prod==="app_prem"?harga.app_prem:harga[prod];
 
-  Object.keys(list).forEach(item=>{
-    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
-  });
+  Object.keys(list).forEach(item=>{
+    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+  });
 
-  totalAwal = list[Object.keys(list)[0]];
-  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
-  priceDiv.classList.remove("hidden");
+  totalAwal = list[Object.keys(list)[0]];
+  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
+  priceDiv.classList.remove("hidden");
 
-  // remove previous listener if any to avoid duplicates
-  // then add once
-  const onJumlahChange = ()=>{
-    totalAwal = list[jumlahSelect.value];
-    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
-  };
-  // remove using a stored property
-  if(jumlahSelect._lastListener) jumlahSelect.removeEventListener("change", jumlahSelect._lastListener);
-  jumlahSelect.addEventListener("change", onJumlahChange);
-  jumlahSelect._lastListener = onJumlahChange;
+  const onJumlahChange = ()=>{
+    totalAwal = list[jumlahSelect.value];
+    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
+  };
+  if(jumlahSelect._lastListener) jumlahSelect.removeEventListener("change", jumlahSelect._lastListener);
+  jumlahSelect.addEventListener("change", onJumlahChange);
+  jumlahSelect._lastListener = onJumlahChange;
 });
 </script>
 
 <!-- ========================
-     SCRIPT FAST MODE (DITAMBAHKAN)
-     ======================== -->
+     SCRIPT FAST MODE (DITAMBAHKAN)
+     ======================== -->
 <script>
-/*
-  FAST Mode integration:
-  - Fetch products from POST https://premiumku.store/api/products
-  - API body: { api_key: "YOUR_KEY" }
-  - Uses API key provided earlier: 6ce970a90c5663043e8958ee251a7160
-  - DOES NOT modify existing "biasa" logic (only activates when metodeOrder === 'fast')
-*/
-
-const PREMIUMKU_API_KEY = "6ce970a90c5663043e8958ee251a7160";
-const PRODUCTS_ENDPOINT = "https://premiumku.store/api/products";
-const ORDER_ENDPOINT = "https://premiumku.store/api/order";
-
 const loadingFast = document.getElementById("loadingFast");
 
-// helper: replace current product select with a clean one (no old listeners)
+// replace select untuk reset listener
 function replaceProductSelect() {
-  const old = document.getElementById("product");
-  const clone = old.cloneNode(false); // clones element but not listeners; keep attributes
-  // copy attributes manually if needed (id already same after replace)
-  old.parentNode.replaceChild(clone, old);
-  productSelect = document.getElementById("product"); // update reference
-  return productSelect;
+  const old = document.getElementById("product");
+  const clone = old.cloneNode(false); 
+  old.parentNode.replaceChild(clone, old);
+  productSelect = document.getElementById("product"); 
+  return productSelect;
 }
 
+// load produk FAST via proxy
 async function loadFastProducts() {
-  // set flag
-  window.isFastMode = true;
-  loadingFast.style.display = "block";
-  // replace select so old listener won't fire
-  replaceProductSelect();
+  window.isFastMode = true;
+  loadingFast.style.display = "block";
+  replaceProductSelect();
 
-  // hide jumlah & price until selection
-  jumlahBox.classList.add("hidden");
-  priceDiv.classList.add("hidden");
-  usernameInput.classList.add("hidden");
-  labelUsername.classList.add("hidden");
+  jumlahBox.classList.add("hidden");
+  priceDiv.classList.add("hidden");
+  usernameInput.classList.add("hidden");
+  labelUsername.classList.add("hidden";
 
-  try {
-    const res = await fetch(PRODUCTS_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_key: PREMIUMKU_API_KEY })
-    });
-    const data = await res.json();
-    loadingFast.style.display = "none";
+  try {
+    const res = await fetch("https://premiumku.store/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json();
+    loadingFast.style.display = "none";
 
-    if(!data.success || !Array.isArray(data.products) || data.products.length === 0) {
-      productSelect.innerHTML = `<option value="">Tidak ada produk FAST</option>`;
-      return;
-    }
+    if(!data.success || !Array.isArray(data.products) || data.products.length === 0) {
+      productSelect.innerHTML = `<option value="">Tidak ada produk FAST</option>`;
+      return;
+    }
 
-    // populate productSelect with API products
-    productSelect.innerHTML = `<option value="">-- Pilih Produk FAST --</option>`;
-    data.products.forEach(p=>{
-      // use data attributes to store price and id
-      productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-name="${encodeURIComponent(p.name)}">${p.name} — Rp ${Number(p.price).toLocaleString()}</option>`;
-    });
+    productSelect.innerHTML = `<option value="">-- Pilih Produk FAST --</option>`;
+    data.products.forEach(p=>{
+      productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-name="${encodeURIComponent(p.name)}">${p.name} — Rp ${Number(p.price).toLocaleString()}</option>`;
+    });
 
-    // add change listener for fast product select
-    productSelect.addEventListener("change", onFastProductChange);
+    productSelect.addEventListener("change", onFastProductChange);
 
-  } catch(err) {
-    loadingFast.style.display = "none";
-    console.error("Gagal ambil produk FAST:", err);
-    productSelect.innerHTML = `<option value="">Gagal mengambil produk FAST</option>`;
-  }
+  } catch(err) {
+    loadingFast.style.display = "none";
+    console.error("Gagal ambil produk FAST:", err);
+    productSelect.innerHTML = `<option value="">Gagal mengambil produk FAST</option>`;
+  }
 }
 
 function onFastProductChange(){
-  const opt = productSelect.options[productSelect.selectedIndex];
-  if(!opt || !opt.dataset || !opt.dataset.price) {
-    jumlahBox.classList.add("hidden");
-    priceDiv.classList.add("hidden");
-    usernameInput.classList.add("hidden");
-    labelUsername.classList.add("hidden");
-    return;
-  }
+  const opt = productSelect.options[productSelect.selectedIndex];
+  if(!opt || !opt.dataset || !opt.dataset.price) {
+    jumlahBox.classList.add("hidden");
+    priceDiv.classList.add("hidden");
+    usernameInput.classList.add("hidden");
+    labelUsername.classList.add("hidden");
+    return;
+  }
 
-  // For FAST products we assume qty is always 1 (per API examples),
-  // but to be flexible we show qty=1 selectable.
-  jumlahSelect.innerHTML = `<option value="1">1</option>`;
-  jumlahBox.classList.remove("hidden");
+  jumlahSelect.innerHTML = `<option value="1">1</option>`;
+  jumlahBox.classList.remove("hidden");
+  usernameInput.classList.remove("hidden");
+  labelUsername.classList.remove("hidden");
 
-  usernameInput.classList.remove("hidden");
-  labelUsername.classList.remove("hidden");
+  const price = Number(opt.dataset.price);
+  totalAwal = price;
+  priceDiv.textContent = "Total: Rp " + price.toLocaleString();
+  priceDiv.classList.remove("hidden");
 
-  const price = Number(opt.dataset.price);
-  totalAwal = price;
-  priceDiv.textContent = "Total: Rp " + price.toLocaleString();
-  priceDiv.classList.remove("hidden");
-
-  // attach a simple change listener for jumlah only in fast mode
-  if(jumlahSelect._fastListener) jumlahSelect.removeEventListener("change", jumlahSelect._fastListener);
-  const fastListener = ()=>{
-    // if you later support qty>1, compute accordingly; currently price * qty
-    const qty = Number(jumlahSelect.value) || 1;
-    const total = price * qty;
-    totalAwal = total;
-    priceDiv.textContent = "Total: Rp " + total.toLocaleString();
-  };
-  jumlahSelect.addEventListener("change", fastListener);
-  jumlahSelect._fastListener = fastListener;
+  if(jumlahSelect._fastListener) jumlahSelect.removeEventListener("change", jumlahSelect._fastListener);
+  const fastListener = ()=>{
+    const qty = Number(jumlahSelect.value) || 1;
+    const total = price * qty;
+    totalAwal = total;
+    priceDiv.textContent = "Total: Rp " + total.toLocaleString();
+  };
+  jumlahSelect.addEventListener("change", fastListener);
+  jumlahSelect._fastListener = fastListener;
 }
 
-// reset to original products (biasa)
 function resetToNormalProducts() {
-  // clear flag
-  window.isFastMode = false;
+  window.isFastMode = false;
+  replaceProductSelect();
 
-  // replace element to remove any fast listeners
-  replaceProductSelect();
+  productSelect.innerHTML = `
+    <option value="">-- Pilih Produk --</option>
+    <option value="followers_ig">Followers Instagram Indonesia</option>
+    <option value="followers_tt">Followers TikTok Indonesia</option>
+    <option value="likes_ig">Like Instagram Indonesia</option>
+    <option value="likes_tt">Like TikTok Indonesia</option>
+    <option value="app_prem">App Premium</option>
+  `;
 
-  // restore original options exactly as in your original file
-  productSelect.innerHTML = `
-    <option value="">-- Pilih Produk --</option>
-    <option value="followers_ig">Followers Instagram Indonesia</option>
-    <option value="followers_tt">Followers TikTok Indonesia</option>
-    <option value="likes_ig">Like Instagram Indonesia</option>
-    <option value="likes_tt">Like TikTok Indonesia</option>
-    <option value="app_prem">App Premium</option>
-  `;
+  jumlahBox.classList.add("hidden");
+  usernameInput.classList.add("hidden");
+  labelUsername.classList.add("hidden");
+  priceDiv.classList.add("hidden");
 
-  jumlahBox.classList.add("hidden");
-  usernameInput.classList.add("hidden");
-  labelUsername.classList.add("hidden");
-  priceDiv.classList.add("hidden");
+  productSelect.addEventListener("change", function(){
+    if(window.isFastMode) return;
+    const prod=this.value;
+    jumlahSelect.innerHTML="";
+    priceDiv.classList.add("hidden");
 
-  // Re-attach the original handler (we rely on the existing code block above,
-  // so to trigger the same behavior we simulate a 'change' event when user picks)
-  // The original handler is already attached above to the original productSelect.
-  // Since we replaced the element, re-add the original handler here by invoking
-  // the same logic: we emulate a 'change' by manually calling its code path.
-  // Simpler: add an event listener that calls the same code used earlier.
-  productSelect.addEventListener("change", function(){
-    // Reuse the original logic (same as earlier block) but ensure not fast mode
-    if(window.isFastMode) return;
-    const prod=this.value;
-    jumlahSelect.innerHTML="";
-    priceDiv.classList.add("hidden");
+    if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
+      usernameInput.classList.remove("hidden");
+      labelUsername.classList.remove("hidden");
+    } else {
+      usernameInput.classList.add("hidden");
+      labelUsername.classList.add("hidden");
+    }
 
-    if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
-      usernameInput.classList.remove("hidden");
-      labelUsername.classList.remove("hidden");
-    } else {
-      usernameInput.classList.add("hidden");
-      labelUsername.classList.add("hidden");
-    }
+    jumlahBox.classList.remove("hidden");
+    const list = prod==="app_prem"?harga.app_prem:harga[prod] || {};
 
-    jumlahBox.classList.remove("hidden");
-    const list = prod==="app_prem"?harga.app_prem:harga[prod] || {};
+    Object.keys(list).forEach(item=>{
+      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+    });
 
-    Object.keys(list).forEach(item=>{
-      jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
-    });
+    totalAwal = list[Object.keys(list)[0]];
+    if(totalAwal) {
+      priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
+      priceDiv.classList.remove("hidden");
+    } else {
+      priceDiv.classList.add("hidden");
+    }
 
-    totalAwal = list[Object.keys(list)[0]];
-    if(totalAwal) {
-      priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
-      priceDiv.classList.remove("hidden");
-    } else {
-      priceDiv.classList.add("hidden");
-    }
-
-    // rebind jumlah change
-    if(jumlahSelect._lastListener) jumlahSelect.removeEventListener("change", jumlahSelect._lastListener);
-    const onJumlahChange = ()=>{
-      totalAwal = list[jumlahSelect.value];
-      priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
-    };
-    jumlahSelect.addEventListener("change", onJumlahChange);
-    jumlahSelect._lastListener = onJumlahChange;
-  });
+    if(jumlahSelect._lastListener) jumlahSelect.removeEventListener("change", jumlahSelect._lastListener);
+    const onJumlahChange = ()=>{
+      totalAwal = list[jumlahSelect.value];
+      priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
+    };
+    jumlahSelect.addEventListener("change", onJumlahChange);
+    jumlahSelect._lastListener = onJumlahChange;
+  });
 }
 
-// When metodeOrder changes, switch modes
 metodeOrder.addEventListener("change", function(){
-  if(this.value === "fast"){
-    loadFastProducts();
-  } else {
-    resetToNormalProducts();
-  }
+  if(this.value === "fast"){
+    loadFastProducts();
+  } else {
+    resetToNormalProducts();
+  }
 });
 
-// ensure initial state is normal
 resetToNormalProducts();
-
 </script>
 
 <!-- FIREBASE -->
@@ -358,13 +310,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/fireba
 import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
-  authDomain: "database-jualan.firebaseapp.com",
-  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
-  projectId: "database-jualan",
-  storageBucket: "database-jualan.firebasestorage.app",
-  messagingSenderId: "766732892106",
-  appId: "1:766732892106:web:cd223204bfbb529599c133",
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -374,88 +326,85 @@ const kuponInput = document.getElementById("kupon");
 const applyKupon = document.getElementById("applyKupon");
 const kuponMsg = document.getElementById("kuponMsg");
 
-// CEK KUPON DISKON
 applyKupon.addEventListener("click", ()=>{
-  const kode = kuponInput.value.trim().toUpperCase();
-  if(!kode) return;
+  const kode = kuponInput.value.trim().toUpperCase();
+  if(!kode) return;
 
-  get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
-    if(snapshot.exists()){
-      potongan = Number(snapshot.val().value);
-      kuponMsg.style.color="green";
-      kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
-      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
-    } else {
-      potongan = 0;
-      kuponMsg.style.color="red";
-      kuponMsg.textContent = "Kupon tidak valid!";
-    }
-  });
+  get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
+    if(snapshot.exists()){
+      potongan = Number(snapshot.val().value);
+      kuponMsg.style.color="green";
+      kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
+      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
+    } else {
+      potongan = 0;
+      kuponMsg.style.color="red";
+      kuponMsg.textContent = "Kupon tidak valid!";
+    }
+  });
 });
 
-// SUBMIT ORDER
 document.getElementById("orderForm").addEventListener("submit", async function(e){
-  e.preventDefault();
-  const product = productSelect.value;
-  const jumlah = jumlahSelect.value;
-  const phone = phoneInput.value;
-  const username = usernameInput.value;
-  const totalHarga = totalAwal - potongan;
+  e.preventDefault();
+  const product = productSelect.value;
+  const jumlah = jumlahSelect.value;
+  const phone = phoneInput.value;
+  const username = usernameInput.value;
+  const totalHarga = totalAwal - potongan;
 
-  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
 
-  const newOrderRef = push(ref(db, "orders"));
-  set(newOrderRef, {
-    orderId,
-    product,
-    jumlah,
-    phone,
-    username,
-    harga: totalHarga,
-    metode: metodeOrder.value,
-    status: "Pending",
-    waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
-    updateTime: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
-  });
+  const newOrderRef = push(ref(db, "orders"));
+  set(newOrderRef, {
+    orderId,
+    product,
+    jumlah,
+    phone,
+    username,
+    harga: totalHarga,
+    metode: metodeOrder.value,
+    status: "Pending",
+    waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
+    updateTime: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
+  });
 
-  if(metodeOrder.value === "fast"){
-    window.location.href =
-     `paymentfast.html?orderId=${orderId}&product=${encodeURIComponent(product)}&jumlah=${jumlah}&phone=${phone}&username=${encodeURIComponent(username)}&harga=${totalHarga}&productId=${encodeURIComponent(product)}`;
-  } else {
-    window.location.href =
-     `payment.html?orderId=${orderId}&product=${encodeURIComponent(product)}&jumlah=${jumlah}&phone=${phone}&username=${encodeURIComponent(username)}&harga=${totalHarga}`;
-  }
+  if(metodeOrder.value === "fast"){
+    window.location.href =
+     `paymentfast.html?orderId=${orderId}&product=${encodeURIComponent(product)}&jumlah=${jumlah}&phone=${phone}&username=${encodeURIComponent(username)}&harga=${totalHarga}&productId=${encodeURIComponent(product)}`;
+  } else {
+    window.location.href =
+     `payment.html?orderId=${orderId}&product=${encodeURIComponent(product)}&jumlah=${jumlah}&phone=${phone}&username=${encodeURIComponent(username)}&harga=${totalHarga}`;
+  }
 });
 
-// LOAD HISTORY
 function loadHistory(){
-  if(!phoneInput.value) {
-    historyList.innerHTML = "Belum ada transaksi.";
-    return;
-  }
+  if(!phoneInput.value) {
+    historyList.innerHTML = "Belum ada transaksi.";
+    return;
+  }
 
-  const ordersRef = ref(db, "orders");
-  onValue(ordersRef, snapshot=>{
-    let html = "";
-    snapshot.forEach(child=>{
-      const data = child.val();
-      if(data.phone === phoneInput.value){
-        html += `
-        <div class="history-item"
-        style="padding:8px;border-radius:6px;background:#fff;border:1px solid #ddd;cursor:pointer"
-        onclick="lihatNota('${data.orderId}')">
-        ${data.product} - ${data.jumlah} <br>
-        Status: ${data.status} <br>
-        Total: Rp ${Number(data.harga).toLocaleString()}
-        </div>`;
-      }
-    });
-    historyList.innerHTML = html || "Belum ada transaksi.";
-  });
+  const ordersRef = ref(db, "orders");
+  onValue(ordersRef, snapshot=>{
+    let html = "";
+    snapshot.forEach(child=>{
+      const data = child.val();
+      if(data.phone === phoneInput.value){
+        html += `
+        <div class="history-item"
+        style="padding:8px;border-radius:6px;background:#fff;border:1px solid #ddd;cursor:pointer"
+        onclick="lihatNota('${data.orderId}')">
+        ${data.product} - ${data.jumlah} <br>
+        Status: ${data.status} <br>
+        Total: Rp ${Number(data.harga).toLocaleString()}
+        </div>`;
+      }
+    });
+    historyList.innerHTML = html || "Belum ada transaksi.";
+  });
 }
 
 window.lihatNota = function(orderId){
-  window.location.href = `nota.html?orderId=${orderId}`;
+  window.location.href = `nota.html?orderId=${orderId}`;
 };
 
 phoneInput.addEventListener("input", loadHistory);
@@ -464,5 +413,4 @@ window.addEventListener("load", loadHistory);
 </script>
 
 </body>
-  </html>
-  
+</html>
