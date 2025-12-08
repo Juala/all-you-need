@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>ROJA ADMIN - Data Pesanan</title>
+<style>
+body{font-family:Arial, sans-serif;background:#f0f0f0;padding:20px;margin:0;}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #ccc;padding:10px;text-align:center;font-size:14px;vertical-align:middle;}
+th{background:#333;color:#fff;}
+input, textarea, select{width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;box-sizing:border-box;}
+button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;}
+.small-btn{padding:6px 8px;font-size:13px;border-radius:6px}
+.success{background:#28a745;color:#fff}
+.warn{background:#ff9800;color:#fff}
+.danger{background:#e91e63;color:#fff}
+.copy-btn{background:#2196F3;color:#fff}
+.flex{display:flex;gap:8px;align-items:center}
+.note{font-size:13px;color:#555;margin-top:6px}
+.pre{font-family:monospace;background:#f8f8f8;padding:8px;border-radius:6px;border:1px solid #eee}
+
+/* Keep multi-select visually compact so it doesn't disrupt layout */
+#produkKupon {height: auto; min-height: 44px; max-height: 160px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>📦 Data Pesanan Masuk</h2>
+
+<input type="text" id="search" placeholder="Cari berdasarkan ROJAID-XXXXX">
+
+<!-- FITUR TAMBAH KUPON -->
+<h3 style="margin-top:25px;">🎟 Tambah Kupon Diskon</h3>
+<input type="text" id="kodeKupon" placeholder="Kode Kupon (ex: DISKON10)">
+<input type="number" id="nilaiKupon" placeholder="Nilai Potongan (ex: 10000)">
+<!-- tambahan: pilih produk untuk kupon (multi) -->
+<label style="margin-top:8px;font-size:13px;color:#333">Pilih Produk yang mendapat potongan (Ctrl/Cmd+klik untuk pilih banyak) :</label>
+<select id="produkKupon" multiple size="4" title="Ctrl/Cmd+klik untuk pilih beberapa produk"></select>
+
+<input type="date" id="masaKupon">
+<input type="number" id="limitKupon" placeholder="Limit pemakaian (0 = unlimited)">
+<button style="background:#008000;color:white;" onclick="buatKupon()">Tambah Kupon</button>
+
+<!-- FITUR KIRIM DATA AKUN -->
+<h3 style="margin-top:25px;">✉️ Kirim Data Akun ke Pesanan</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+  <div>
+    <label>Order ID (ROJAID-...)</label>
+    <input id="acctOrderId" placeholder="ROJAID-915727">
+  </div>
+  <div>
+    <label>Tampilkan sebagai (opsional)</label>
+    <select id="acctLabel">
+      <option value="sn">Nomor SN/Token</option>
+      <option value="account" selected>Akun/Info</option>
+    </select>
+  </div>
+</div>
+<label style="margin-top:10px">Isi Data Akun (contoh: Email: xxxxx | Pass: yyyy)</label>
+<textarea id="accountData" rows="3" placeholder="Email: contoh@domain.com | Pass: password123"></textarea>
+<div style="display:flex;gap:10px;margin-top:10px;">
+  <button onclick="kirimAkun()" style="background:#2196F3;color:white;">Kirim Akun ke Pesanan</button>
+  <button onclick="kirimAkunDanWA();" style="background:#4CAF50;color:white;">Kirim & Kirim WA (opsional)</button>
+  <button onclick="previewExample()" style="background:#777;color:white;">Lihat Contoh Tampilan</button>
+</div>
+<div class="note">Catatan: fungsi ini akan mencari pesanan berdasarkan <code>orderId</code> di node <code>/orders</code> dan menambahkan field <code>account</code> (atau <code>sn_token</code> jika dipilih) ke pesanan tersebut. Data akan langsung tampil di riwayat pelanggan.</div>
+
+<!-- TABEL PESANAN -->
+<h3 style="margin-top:25px;">📦 Tabel Pesanan</h3>
+<table>
+<thead>
+<tr>
+<th>ID Pesanan</th>
+<th>Nama</th>
+<th>WA</th>
+<th>Produk</th>
+<th>Total</th>
+<th>Akun</th>
+<th>Status</th>
+<th>Aksi</th>
+<th>Nota</th>
+</tr>
+</thead>
+<tbody id="orderTable"></tbody>
+</table>
+
+<!-- TABEL KUPON -->
+<h3 style="margin-top:25px;">📑 Daftar Kupon Aktif</h3>
+<table>
+<thead>
+<tr>
+<th>Kode</th>
+<th>Potongan</th>
+<th>Produk</th>
+<th>Expired</th>
+<th>Limit</th>
+<th>Used</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="kuponBody"></tbody>
+</table>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, update, remove, set, get, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.appspot.com",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const table = document.getElementById("orderTable");
+const search = document.getElementById("search");
+const kuponBody = document.getElementById("kuponBody");
+const produkKuponSelect = document.getElementById("produkKupon");
+
+let dataOrders = [];
+
+// LIST PESANAN (mengambil key dan value)
+onValue(ref(db, "orders"), (snapshot)=>{
+    table.innerHTML = "";
+    dataOrders = [];
+
+    snapshot.forEach(child=>{
+        dataOrders.push({
+          key: child.key,
+          ...child.val()
+        });
+    });
+
+    renderTable(dataOrders);
+});
+
+function renderTable(list){
+  table.innerHTML = "";
+  list.forEach(data=>{
+    const showNameProducts = ["followers_ig","followers_tt","likes_ig","likes_tt"];
+    const nama = showNameProducts.includes(data.product) ? (data.username ?? "-") : (data.fullname ?? "-");
+    const akunShort = data.account ? (data.account.length>35 ? data.account.slice(0,35)+"..." : data.account) : (data.sn_token ? data.sn_token : "-");
+
+    table.innerHTML += `
+    <tr>
+        <td>${data.orderId ?? ""}</td>
+        <td style="max-width:120px;word-break:break-word">${nama}</td>
+        <td>${data.phone ?? ""}</td>
+        <td>${data.product ?? "-"}</td>
+        <td>Rp ${Number(data.harga ?? 0).toLocaleString("id-ID")}</td>
+        <td style="max-width:220px;word-break:break-word">
+          ${akunShort !== "-" ? `<div style="display:flex;gap:6px;align-items:center;justify-content:center">
+            <button class="small-btn copy-btn" onclick="lihatAkun('${data.key}')">Lihat</button>
+            <button class="small-btn" onclick="salinAkun('${data.key}')">Salin</button>
+          </div>` : "-"}
+        </td>
+        <td>
+          <select onchange="updateStatus('${data.key}', this.value)">
+            <option ${data.status=="Pending"?"selected":""}>Pending</option>
+            <option ${data.status=="Proses"?"selected":""}>Proses</option>
+            <option ${data.status=="Success"?"selected":""}>Success</option>
+            <option ${data.status=="Cancel"?"selected":""}>Cancel</option>
+          </select>
+        </td>
+        <td><button onclick="deleteOrder('${data.key}')" class="small-btn danger">Hapus</button></td>
+        <td><a href="nota.html?id=${data.orderId}" target="_blank" class="small-btn" style="background:#008CBA;color:white;">Lihat Nota</a></td>
+    </tr>`;
+  });
+}
+
+search.addEventListener("keyup", ()=>{
+  const keyword = (search.value||"").toUpperCase();
+  const filtered = dataOrders.filter(item=> (item.orderId||"").toUpperCase().includes(keyword) );
+  renderTable(filtered);
+});
+
+// UPDATE STATUS
+window.updateStatus = function(key, status){
+  update(ref(db, "orders/" + key), { status });
+}
+
+// DELETE ORDER
+window.deleteOrder = function(key){
+  if(confirm("Yakin ingin menghapus pesanan ini?")){
+    remove(ref(db, "orders/" + key));
+  }
+}
+
+// LIHAT AKUN (modal sederhana via prompt)
+window.lihatAkun = function(key){
+  get(child(ref(db), "orders/" + key)).then(snap=>{
+    if(snap.exists()){
+      const d = snap.val();
+      const info = d.account ?? d.sn_token ?? "Tidak ada data akun";
+      alert("Akun:\n\n" + info);
+    } else alert("Data tidak ditemukan");
+  });
+}
+
+// SALIN AKUN KE CLIPBOARD
+window.salinAkun = function(key){
+  get(child(ref(db), "orders/" + key)).then(snap=>{
+    if(snap.exists()){
+      const d = snap.val();
+      const info = d.account ?? d.sn_token ?? "";
+      if(!info) return alert("Tidak ada data untuk disalin");
+      navigator.clipboard.writeText(info).then(()=>alert("Berhasil disalin ke clipboard"));
+    } else alert("Data tidak ditemukan");
+  });
+}
+
+// --- FUNGSI TAMBAH KUPON (DITAMBAHKAN PILIH PRODUK) ---
+window.buatKupon = function(){
+  const kode = document.getElementById("kodeKupon").value.trim().toUpperCase();
+  const value = Number(document.getElementById("nilaiKupon").value);
+  const expires = document.getElementById("masaKupon").value;
+  const limit = Number(document.getElementById("limitKupon").value);
+
+  if(!kode || !value) return alert("Isi kode & nilai kupon.");
+
+  // ambil pilihan produk (multi)
+  const produkSelected = Array.from(produkKuponSelect.options)
+    .filter(opt => opt.selected)
+    .map(opt => opt.value)
+    .filter(v => v && v !== ""); // filter kosong
+
+  // jika tidak memilih produk, anggap berlaku untuk semua produk
+  const productsToSave = (produkSelected.length === 0) ? ["ALL"] : produkSelected;
+
+  set(ref(db, "coupons/" + kode), {
+    value,
+    expires: expires || "",
+    limit: limit || 0,
+    used: 0,
+    products: productsToSave
+  }).then(()=> { 
+    alert("Kupon berhasil ditambahkan!");
+    // reset fields (optional)
+    document.getElementById("kodeKupon").value = "";
+    document.getElementById("nilaiKupon").value = "";
+    document.getElementById("masaKupon").value = "";
+    document.getElementById("limitKupon").value = "";
+    // clear selection
+    Array.from(produkKuponSelect.options).forEach(o => o.selected = false);
+  }).catch(err=>{
+    console.error(err);
+    alert("Gagal membuat kupon: " + err.message);
+  });
+};
+
+// LIST & HAPUS KUPON (tampilan diperbarui untuk menampilkan products)
+onValue(ref(db, "coupons"), (snapshot)=>{
+  kuponBody.innerHTML="";
+  snapshot.forEach(child=>{
+    const kode = child.key;
+    const data = child.val();
+
+    // format produk untuk tampilan
+    let produkDisplay = "-";
+    if(Array.isArray(data.products)){
+      if(data.products.includes("ALL")) produkDisplay = "Semua Produk";
+      else produkDisplay = data.products.join(", ");
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${kode}</td>
+      <td>Rp ${Number(data.value).toLocaleString()}</td>
+      <td style="max-width:260px;word-break:break-word">${produkDisplay}</td>
+      <td>${data.expires || "Selamanya"}</td>
+      <td>${data.limit == 0 ? "Unlimited" : data.limit}</td>
+      <td>${data.used ?? 0}</td>
+      <td><button onclick="hapusKupon('${kode}')" class="small-btn danger">Hapus</button></td>
+    `;
+    kuponBody.appendChild(tr);
+  });
+});
+
+window.hapusKupon = function(kode){
+  if(confirm("Yakin ingin menghapus kupon "+ kode +"?")){
+    remove(ref(db, "coupons/" + kode));
+  }
+};
+
+/* LOAD PRODUCTS TO SELECT (ambil dari node 'products' jika ada, fallback ke daftar umum) */
+async function loadProducts(){
+  const prodRef = ref(db, "products");
+  try {
+    const snap = await get(prodRef);
+    let products = [];
+
+    if(snap.exists()){
+      // expecting products node as { productId: { name: "...", price: ... } } OR array-like
+      const val = snap.val();
+      // normalize to array of {id, name}
+      if(Array.isArray(val)){
+        products = val.map((v,i)=>({ id: v.id ?? ("p"+i), name: v.name ?? v.nama ?? v.title ?? JSON.stringify(v) }));
+      } else {
+        products = Object.keys(val).map(k => ({ id: k, name: val[k].name ?? val[k].nama ?? k }));
+      }
+    } else {
+      // fallback default produk list (sesuaikan jika perlu)
+      products = [
+        { id: "followers_ig", name: "Followers Instagram Indonesia" },
+        { id: "followers_tt", name: "Followers TikTok Indonesia" },
+        { id: "likes_ig", name: "Like Instagram Indonesia" },
+        { id: "likes_tt", name: "Like TikTok Indonesia" },
+        { id: "app_prem", name: "App Premium" }
+      ];
+    }
+
+    // clear current
+    produkKuponSelect.innerHTML = "";
+    // add helper option for ALL
+    const optAll = document.createElement("option");
+    optAll.value = "ALL";
+    optAll.textContent = "Semua Produk (Pilih jika berlaku ke semua)";
+    produkKuponSelect.appendChild(optAll);
+
+    products.forEach(p=>{
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      produkKuponSelect.appendChild(opt);
+    });
+  } catch(err){
+    console.error("Gagal load products:", err);
+    // fallback minimal
+    produkKuponSelect.innerHTML = `
+      <option value="ALL">Semua Produk (Pilih jika berlaku ke semua)</option>
+      <option value="followers_ig">Followers Instagram Indonesia</option>
+      <option value="followers_tt">Followers TikTok Indonesia</option>
+      <option value="likes_ig">Like Instagram Indonesia</option>
+      <option value="likes_tt">Like TikTok Indonesia</option>
+      <option value="app_prem">App Premium</option>
+    `;
+  }
+}
+
+/* ========== FITUR KIRIM DATA AKUN ========== */
+async function kirimAkun(){
+  const orderId = (document.getElementById("acctOrderId").value||"").trim();
+  const accountData = (document.getElementById("accountData").value||"").trim();
+  const label = document.getElementById("acctLabel").value || "account";
+
+  if(!orderId) return alert("Masukkan Order ID (ROJAID-...)");
+  if(!accountData) return alert("Masukkan data akun");
+
+  const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
+  const snap = await get(q);
+  if(!snap.exists()){
+    return alert("Order dengan ID tersebut tidak ditemukan.");
+  }
+
+  let updated = 0;
+  snap.forEach(child=>{
+    const k = child.key;
+    const payload = {};
+    if(label === "sn") payload["sn_token"] = accountData;
+    else payload["account"] = accountData;
+
+    payload["deliveredAt"] = new Date().toLocaleString("id-ID");
+    payload["status"] = "Success"; // otomatis ubah status
+    update(ref(db, "orders/" + k), payload);
+    updated++;
+  });
+
+  alert(`Berhasil mengirim data akun ke ${updated} pesanan.`);
+}
+
+async function kirimAkunDanWA(){
+  await kirimAkun();
+  window.open("https://wa.me/?text=" + encodeURIComponent("Akun sudah dikirim. Silakan cek riwayat."), "_blank");
+}
+
+function previewExample(){
+  const imgPath = "/mnt/data/Screenshot_20251124_010151.jpg";
+  window.open(imgPath, "_blank");
+}
+
+/* Inisialisasi saat load */
+window.addEventListener("load", ()=>{
+  loadProducts();
+});
+</script>
+</body>
+  </html>
