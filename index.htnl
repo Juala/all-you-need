@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Layanan By Roja</title>
+<style>
+body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
+.container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+label{font-weight:bold;display:block;margin-top:10px;}
+select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
+button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+.hidden{display:none;}
+.price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
+#history{margin-top:25px;background:#eef3ff;padding:15px;border-radius:10px;border:1px solid #cdd8ff;}
+#history h3{margin-top:0;color:#004aad;}
+.history-item{margin-bottom:8px;font-size:14px;}
+</style>
+</head>
+<body>
+  
+<div class="container">
+<h2>Form Pesanan RojaServer</h2>
+
+<form id="orderForm">
+
+<label>Pilih Produk:</label>
+<select id="product" required>
+  <option value="">-- Pilih Produk --</option>
+  <option value="followers_ig">Followers Instagram Indonesia</option>
+  <option value="followers_tt">Followers TikTok Indonesia</option>
+  <option value="likes_ig">Like Instagram Indonesia</option>
+  <option value="likes_tt">Like TikTok Indonesia</option>
+  <option value="app_prem">App Premium</option>
+</select>
+
+<div id="jumlahBox" class="hidden">
+<label>Pilih Jumlah:</label>
+<select id="jumlah"></select>
+</div>
+
+<label id="labelUsername" class="hidden">Username / Link Profil:</label>
+<input type="text" id="username" placeholder="Masukkan username / link profil" class="hidden">
+
+<label id="labelPhone">Nomor WhatsApp:</label>
+<input type="text" id="phone" placeholder="Masukkan No WhatsApp" required>
+
+<!-- INPUT KUPON DISKON -->
+<label>Kode Kupon (opsional):</label>
+<input type="text" id="kupon" placeholder="Masukkan kode kupon">
+<button type="button" id="applyKupon" style="margin-top:10px;background:#008000;color:white;font-weight:bold;">Terapkan Kupon</button>
+<div id="kuponMsg" style="font-size:14px;color:red;margin-top:5px;"></div>
+
+<div id="priceDisplay" class="price-box hidden"></div>
+
+<button type="submit">Order Sekarang</button>
+</form>
+
+<!-- Riwayat Transaksi -->
+<div id="history">
+<h3>Riwayat Transaksi:</h3>
+<div id="historyList">Belum ada transaksi.</div>
+</div>
+
+</div>
+
+<script>
+// List harga
+const harga={
+  followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
+  followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
+  likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
+  likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
+  app_prem:{
+    "Netflix 1 Bulan":45000,
+    "Spotify Premium 1 Bulan (No Garansi)":15000,
+    "Spotify Premium 1 Bulan (Full Garansi)":30000,
+    "Alight Motion Premium 1 Tahun":10000,
+    "YouTube Premium Famplan 1 Bulan":10000,
+    "YouTube Premium Mixplan 1 Bulan":17000,
+    "YouTube Premium Famplan 2 Bulan":20000,
+    "YouTube Premium Mixplan 3 Bulan":36000,
+    "YouTube Premium Mixplan + email 3 Bulan":40000,
+    "Capcut Premium 1 Bulan":20000,
+    "Gemini Premium 1 Tahun + 2TB":35000,
+    "GPT Premium 1 Bulan":30000,
+    "Vidio Premium 1 Bulan (TV)":30000,
+    "Vidio Premium 1 Bulan (Mobile)":35000,
+    "Vidio Premium 1 Bulan (All Device)":42000,
+    "Canva Premium 1 Bulan":5000,
+    "Canva Premium 1 Bulan + Designer":10000
+  }
+};
+
+const productSelect=document.getElementById("product");
+const jumlahSelect=document.getElementById("jumlah");
+const jumlahBox=document.getElementById("jumlahBox");
+const priceDiv=document.getElementById("priceDisplay");
+const usernameInput=document.getElementById("username");
+const labelUsername=document.getElementById("labelUsername");
+const phoneInput=document.getElementById("phone");
+const historyList=document.getElementById("historyList");
+
+let potongan = 0;
+let totalAwal = 0;
+
+// tampil harga otomatis
+productSelect.addEventListener("change",function(){
+  const prod=this.value;
+  jumlahSelect.innerHTML="";
+  priceDiv.classList.add("hidden");
+
+  if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
+    usernameInput.classList.remove("hidden");
+    labelUsername.classList.remove("hidden");
+  } else {
+    usernameInput.classList.add("hidden");
+    labelUsername.classList.add("hidden");
+  }
+
+  jumlahBox.classList.remove("hidden");
+  const list = prod==="app_prem"?harga.app_prem:harga[prod];
+  Object.keys(list).forEach(item=>{
+    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+  });
+
+  totalAwal = list[Object.keys(list)[0]];
+  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
+  priceDiv.classList.remove("hidden");
+
+  jumlahSelect.addEventListener("change",()=>{
+    totalAwal = list[jumlahSelect.value];
+    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
+  });
+});
+</script>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const kuponInput = document.getElementById("kupon");
+const applyKupon = document.getElementById("applyKupon");
+const kuponMsg = document.getElementById("kuponMsg");
+
+// CEK KUPON DISKON
+applyKupon.addEventListener("click", ()=>{
+  const kode = kuponInput.value.trim().toUpperCase();
+  if(!kode) return;
+
+  get(child(ref(db), "coupons/" + kode)).then(snapshot=>{
+    if(snapshot.exists()){
+      potongan = Number(snapshot.val().value);
+      kuponMsg.style.color="green";
+      kuponMsg.textContent = "Kupon berhasil digunakan! Potongan: Rp " + potongan.toLocaleString();
+      priceDiv.textContent = "Total: Rp " + (totalAwal-potongan).toLocaleString();
+    } else {
+      potongan = 0;
+      kuponMsg.style.color="red";
+      kuponMsg.textContent = "Kupon tidak valid!";
+    }
+  });
+});
+
+// SUBMIT ORDER
+document.getElementById("orderForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  const product = productSelect.value;
+  const jumlah = jumlahSelect.value;
+  const phone = phoneInput.value;
+  const username = usernameInput.value;
+  const totalHarga = totalAwal - potongan;
+
+  const orderId = `ROJAID-${Math.floor(100000 + Math.random()*900000)}`;
+  const kodeUnik = "ROJA-" + orderId.split("-")[1];
+
+  const newOrderRef = push(ref(db, "orders"));
+  set(newOrderRef, {
+    orderId,
+    kodeUnik,
+    product,
+    jumlah,
+    phone,
+    username,
+    harga: totalHarga,
+    status: "Pending",
+    waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
+    updateTime: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
+  });
+
+  window.location.href =
+   `payment.html?orderId=${orderId}&product=${product}&jumlah=${jumlah}&phone=${phone}&username=${username}&harga=${totalHarga}`;
+});
+
+// LOAD HISTORY
+function loadHistory(){
+  if(!phoneInput.value) {
+    historyList.innerHTML = "Belum ada transaksi.";
+    return;
+  }
+
+  const ordersRef = ref(db, "orders");
+  onValue(ordersRef, snapshot=>{
+    let html = "";
+    snapshot.forEach(child=>{
+      const data = child.val();
+      if(data.phone === phoneInput.value){
+        html += `
+        <div class="history-item"
+        style="padding:8px;border-radius:6px;background:#fff;border:1px solid #ddd;cursor:pointer"
+        onclick="lihatNota('${data.orderId}')">
+        ${data.product} - ${data.jumlah} <br>
+        Status: ${data.status} <br>
+        Total: Rp ${Number(data.harga).toLocaleString()}
+        </div>`;
+      }
+    });
+    historyList.innerHTML = html || "Belum ada transaksi.";
+  });
+}
+
+window.lihatNota = function(orderId){
+  window.location.href = `nota.html?orderId=${orderId}`;
+};
+
+phoneInput.addEventListener("input", loadHistory);
+window.addEventListener("load", loadHistory);
+
+</script>
+
+</body>
+</html>
