@@ -16,14 +16,32 @@ p { font-size:15px; margin:6px 0; }
 button { background:#007bff; width:100%; padding:14px; color:white; border:none; border-radius:10px; font-size:17px; font-weight:600; cursor:pointer; margin-top:18px; }
 button:hover { background:#005fcc; }
 #btnOrderAgain { background:#28a745; margin-top:10px; }
-.input-box { margin-top:20px; }
-input { width:100%; padding:12px; font-size:16px; border-radius:10px; border:1px solid #bbb; }
+
+/* kolom kode admin */
+#kodeAdminBox { 
+  margin-top:25px; 
+  padding:15px; 
+  background:#fff7e6; 
+  border:1px solid #ffd57a; 
+  border-radius:10px; 
+}
+#kodeAdmin { 
+  width:100%; 
+  padding:12px; 
+  border:1px solid #ccc; 
+  border-radius:10px; 
+  font-size:16px;
+}
+#lanjutPremium { 
+  display:none; 
+  background:#ff6600; 
+}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Konfirmasi Pembayaran FAST</h2>
+  <h2>Konfirmasi Pembayaran (FAST)</h2>
 
   <div class="info-box">
     <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
@@ -34,28 +52,27 @@ input { width:100%; padding:12px; font-size:16px; border-radius:10px; border:1px
   </div>
 
   <div class="qris-box">
-    <p>Silakan Scan QRIS untuk melanjutkan pembayaran.</p>
+    <p>Silakan Scan QRIS untuk membayar, lalu tekan tombol Konfirmasi Pembayaran</p>
     <img src="qris.png" alt="QRIS">
   </div>
 
-  <button onclick="kirimWA()">Konfirmasi ke Admin</button>
+  <button onclick="kirimWA()">Konfirmasi Pembayaran</button>
+  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
 
-  <!-- Kolom untuk memasukkan kode admin -->
-  <div class="input-box">
-    <p><strong>Kode dari Admin:</strong></p>
-    <input type="text" id="kodeAdmin" placeholder="Tempel kode dari admin di sini...">
+  <!-- kode admin -->
+  <div id="kodeAdminBox">
+    <p><strong>Masukkan Kode dari Admin:</strong></p>
+    <input type="text" id="kodeAdmin" placeholder="Tempel kode admin di sini">
+    <button onclick="cekKode()">Verifikasi Kode</button>
   </div>
 
-  <button style="background:#ff7b00;" onclick="prosesPremiumKu()">Proses ke PremiumKu</button>
-
-  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
+  <button id="lanjutPremium" onclick="lanjutPremiumku()">Lanjutkan Pembayaran Premiumku</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
   authDomain: "database-jualan.firebaseapp.com",
@@ -66,82 +83,62 @@ const firebaseConfig = {
   appId: "1:766732892106:web:cd223204bfbb529599c133"
 };
 
-// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Ambil parameter URL
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId") || `ROJA-${Date.now()}`;
 const product = params.get("product");
 const jumlah = params.get("jumlah");
 const phone = params.get("phone");
+const username = params.get("username") || "-";
 const hargaTotal = params.get("harga");
-const productId = params.get("productId"); // untuk API fast
 
-// Tampilkan ke UI
+// tampil ke UI
 document.getElementById("orderId").textContent = orderId;
 document.getElementById("produk").textContent = product;
 document.getElementById("jumlah").textContent = jumlah;
 document.getElementById("phone").textContent = phone;
 document.getElementById("harga").textContent = "Rp " + Number(hargaTotal).toLocaleString("id-ID");
 
-// Kirim ke Firebase
+// simpan firebase
 set(ref(db, "orders_fast/" + orderId), {
   id: orderId,
+  nama: username,
   whatsapp: phone,
   produk: product,
-  jumlah: jumlah,
   total: hargaTotal,
-  status: "Pending",
-  fastProductId: productId
+  status: "Pending"
 });
 
-// Tombol konfirmasi WA
+// WA konfirmasi
 window.kirimWA = function(){
-  let waMsg = `Halo Admin, saya ingin konfirmasi pembayaran FAST.\n\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}\nNomor: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}\n\nTolong kirimkan kode untuk melanjutkan.`;
+  let waMsg = `Halo Mas, saya ingin konfirmasi pembayaran FAST.\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}\nUsername/Link: ${username}\nNomor: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}`;
   window.open(`https://wa.me/6282262642007?text=${encodeURIComponent(waMsg)}`, "_blank");
 }
 
-// Tombol pesan lagi
-window.pesanLagi = function(){ window.location.href = "index.html"; }
+// tombol pesan lagi
+window.pesanLagi = function(){
+  window.location.href = "index.html";
+}
 
-// PROSES ORDER KE PREMIUMKU
-window.prosesPremiumKu = async function(){
-
+// verifikasi kode admin
+window.cekKode = function(){
   const kode = document.getElementById("kodeAdmin").value.trim();
-  if(kode === ""){
-    alert("Masukkan kode dari admin terlebih dahulu!");
+
+  if(kode.length < 5){
+    alert("Kode tidak valid. Cek kembali ya bang.");
     return;
   }
 
-  const body = {
-    api_key: "6ce970a90c5663043e8958ee251a7160",
-    product_id: Number(productId),
-    phone: phone,
-    note: kode
-  };
-
-  try {
-    const res = await fetch("https://premiumku.store/api/order", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify(body)
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-      alert("Order Fast Berhasil! Silakan cek WhatsApp Anda.");
-    } else {
-      alert("Gagal memproses order: " + data.message);
-    }
-
-  } catch(err){
-    alert("Terjadi kesalahan koneksi.");
-  }
+  alert("Kode valid! Silakan lanjutkan ke Premiumku.");
+  document.getElementById("lanjutPremium").style.display = "block";
 }
 
+// lanjut ke Premiumku
+window.lanjutPremiumku = function(){
+  window.location.href = "https://premiumku.store";
+}
 </script>
 
 </body>
