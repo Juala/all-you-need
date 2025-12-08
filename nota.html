@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nota Transaksi</title>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;margin:0;padding:20px;}
+.container{max-width:450px;background:#fff;margin:auto;padding:20px;border-radius:12px;
+box-shadow:0 0 10px rgba(0,0,0,0.15);}
+h2{text-align:center;margin-top:0;}
+.data-box{margin-top:10px;font-size:15px;}
+.label{font-weight:bold;color:#333;}
+.value{float:right;color:#000;}
+
+.btn-box{display:flex;justify-content:space-between;gap:10px;margin-top:20px;}
+.btn-box button{width:48%;}
+
+button{padding:12px;border:none;border-radius:8px;background:#007bff;
+color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
+#editBtn{background:#28a745;}
+#backBtn{background:#555;width:160px;margin:auto;margin-top:15px;display:block;}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="nota">
+<h2>Detail Transaksi</h2>
+<hr style="margin:10px 0;">
+
+<div class="data-box"><span class="label">Nama Produk:</span><span class="value" id="product"></span></div>
+<div class="data-box"><span class="label">Jumlah:</span><span class="value" id="jumlah"></span></div>
+<div class="data-box"><span class="label">Nomor WhatsApp:</span><span class="value" id="phone"></span></div>
+<div class="data-box"><span class="label">Username / Link:</span><span class="value" id="username"></span></div>
+<div class="data-box"><span class="label">Status Transaksi:</span><span class="value" id="status"></span></div>
+
+<hr style="margin:10px 0;">
+<div class="data-box"><span class="label">Total:</span><span class="value" id="harga"></span></div>
+<div class="data-box"><span class="label">ID Transaksi:</span><span class="value" id="orderId"></span></div>
+<div class="data-box"><span class="label">Tanggal:</span><span class="value" id="waktu"></span></div>
+</div>
+
+<div class="btn-box noCapture">
+  <button id="printBtn">Cetak Struk</button>
+  <button id="editBtn">Edit Harga</button>
+</div>
+
+<button id="backBtn" class="noCapture">Kembali</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, onValue, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.firebasestorage.app",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const orderId = new URLSearchParams(window.location.search).get("orderId");
+const q = query(ref(db, "orders"), orderByChild("orderId"), equalTo(orderId));
+
+let key = "";
+
+onValue(q, snapshot=>{
+  snapshot.forEach(child=>{
+    key = child.key;
+    const d = child.val();
+
+    document.getElementById("product").textContent = d.product;
+    document.getElementById("jumlah").textContent = d.jumlah;
+    document.getElementById("phone").textContent = d.phone;
+    document.getElementById("username").textContent = d.username || "-";
+    document.getElementById("status").textContent = d.status;
+    document.getElementById("harga").textContent = "Rp " + Number(d.harga).toLocaleString();
+    document.getElementById("orderId").textContent = d.orderId;
+    document.getElementById("waktu").textContent = d.waktu;
+
+    document.getElementById("printBtn").onclick = async ()=>{
+
+      html2canvas(document.getElementById("nota"), {
+        scale:3,
+        backgroundColor:"#ffffff",
+        ignoreElements:(el)=>el.classList.contains("noCapture")
+      }).then(canvas=>{
+        canvas.toBlob(async(blob)=>{
+          const file = new File([blob], `STRUK-${d.orderId}.png`, {type:"image/png"});
+
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            await navigator.share({files:[file], title:"Struk Pembelian Roja Server"});
+          } else {
+            const link = document.createElement("a");
+            link.download = `STRUK-${d.orderId}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+          }
+        });
+      });
+    };
+
+    document.getElementById("editBtn").onclick = ()=>{
+      const newPrice = prompt("Masukkan harga baru (angka saja):");
+      if(!newPrice || isNaN(newPrice)) return alert("Harga tidak valid!");
+      update(ref(db, "orders/"+key),{ harga:newPrice });
+      alert("Harga diperbarui ✔");
+      location.reload();
+    };
+  });
+});
+
+document.getElementById("backBtn").onclick = ()=> window.location.href="index.html";
+</script>
+
+</body>
+</html>
