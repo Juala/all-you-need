@@ -66,7 +66,7 @@ button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;bac
 
 <script>
 // List harga
-const harga={
+const harga = {
   followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
   followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
   likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
@@ -104,10 +104,11 @@ const historyList=document.getElementById("historyList");
 let potongan = 0;
 let totalAwal = 0;
 
-// tampil harga otomatis
-productSelect.addEventListener("change",function(){
-  const prod=this.value;
-  jumlahSelect.innerHTML="";
+// FIX BUG: hapus event listener ganda
+productSelect.addEventListener("change", function(){
+
+  const prod = this.value;
+  jumlahSelect.innerHTML = "";
   priceDiv.classList.add("hidden");
 
   if(prod==="followers_ig"||prod==="followers_tt"||prod==="likes_ig"||prod==="likes_tt"){
@@ -119,19 +120,23 @@ productSelect.addEventListener("change",function(){
   }
 
   jumlahBox.classList.remove("hidden");
-  const list = prod==="app_prem"?harga.app_prem:harga[prod];
+
+  const list = prod==="app_prem" ? harga.app_prem : harga[prod];
   Object.keys(list).forEach(item=>{
-    jumlahSelect.innerHTML+=`<option value="${item}">${item}</option>`;
+    jumlahSelect.innerHTML += `<option value="${item}">${item}</option>`;
   });
 
   totalAwal = list[Object.keys(list)[0]];
-  priceDiv.textContent="Total: Rp "+totalAwal.toLocaleString();
+  priceDiv.textContent = "Total: Rp " + totalAwal.toLocaleString();
   priceDiv.classList.remove("hidden");
+});
 
-  jumlahSelect.addEventListener("change",()=>{
-    totalAwal = list[jumlahSelect.value];
-    priceDiv.textContent="Total: Rp "+(totalAwal-potongan).toLocaleString();
-  });
+// FIX: Listener jumlah dipisah agar tidak duplikat
+jumlahSelect.addEventListener("change", ()=>{
+  const prod = productSelect.value;
+  const list = prod==="app_prem" ? harga.app_prem : harga[prod];
+  totalAwal = list[jumlahSelect.value];
+  priceDiv.textContent = "Total: Rp " + (totalAwal - potongan).toLocaleString();
 });
 </script>
 
