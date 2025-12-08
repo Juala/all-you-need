@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment | ROJA STORE</title>
+<style>
+body { font-family:Poppins, Arial, sans-serif; background:#f4f7fc; margin:0; padding:0; }
+.container { max-width:500px; margin:50px auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2 { text-align:center; font-weight:700; color:#2d2d2d; margin-bottom:15px;}
+.info-box { margin-top:20px; padding:15px; border-radius:10px; background:#eef3ff; border:1px solid #cdd8ff; }
+p { font-size:15px; margin:6px 0; }
+.value { font-weight:bold; color:#004aad; }
+.qris-box { margin-top:20px; text-align:center; }
+.qris-box img { border-radius:10px; border:1px solid #ddd; width:250px; }
+button { background:#007bff; width:100%; padding:14px; color:white; border:none; border-radius:10px; font-size:17px; font-weight:600; cursor:pointer; margin-top:18px; }
+button:hover { background:#005fcc; }
+#btnOrderAgain { background:#28a745; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Konfirmasi Pembayaran</h2>
+
+  <div class="info-box">
+    <p><strong>Order ID:</strong> <span id="orderId" class="value"></span></p>
+    <p><strong>Produk:</strong> <span id="produk" class="value"></span></p>
+    <p><strong>Jumlah:</strong> <span id="jumlah" class="value"></span></p>
+    <p><strong>Nomor WhatsApp:</strong> <span id="phone" class="value"></span></p>
+    <p><strong>Total Pembayaran:</strong> <span id="harga" class="value"></span></p>
+  </div>
+
+  <div class="qris-box">
+    <p>Silakan Scan QRIS untuk melanjutkan pembayaran, setelah itu klik tombol Konfirmasi Pembayaran</p>
+    <img src="qris.png" alt="QRIS">
+  </div>
+
+  <button onclick="kirimWA()">Konfirmasi Pembayaran</button>
+  <button id="btnOrderAgain" onclick="pesanLagi()">Pesan Lagi</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpj7udfBLEqlloEqidlSJYHt-2icTOGCw",
+  authDomain: "database-jualan.firebaseapp.com",
+  databaseURL: "https://database-jualan-default-rtdb.firebaseio.com",
+  projectId: "database-jualan",
+  storageBucket: "database-jualan.appspot.com",
+  messagingSenderId: "766732892106",
+  appId: "1:766732892106:web:cd223204bfbb529599c133"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ambil dari url
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("orderId") || `ROJA-${Date.now()}`;
+const product = params.get("product");
+const jumlah = params.get("jumlah");
+const phone = params.get("phone");
+const username = params.get("username") || "-";
+const hargaTotal = params.get("harga");
+
+// tampil ke UI
+document.getElementById("orderId").textContent = orderId;
+document.getElementById("produk").textContent = product;
+document.getElementById("jumlah").textContent = jumlah;
+document.getElementById("phone").textContent = phone;
+document.getElementById("harga").textContent = "Rp " + Number(hargaTotal).toLocaleString("id-ID");
+
+// kirim ke firebase
+set(ref(db, "orders/" + orderId), {
+  id: orderId,
+  nama: username,
+  whatsapp: phone,
+  produk: product,
+  total: hargaTotal,
+  status: "Pending"
+});
+
+// buat fungsi global supaya tombol bisa klik
+window.kirimWA = function(){
+  let waMsg = `Halo Mas, saya ingin konfirmasi pembayaran.\nOrder ID: ${orderId}\nProduk: ${product}\nJumlah: ${jumlah}\nUsername/Link: ${username}\nNomor: ${phone}\nTotal: Rp ${Number(hargaTotal).toLocaleString("id-ID")}`;
+  window.open(`https://wa.me/6282262642007?text=${encodeURIComponent(waMsg)}`, "_blank");
+}
+
+// tombol pesan lagi
+window.pesanLagi = function(){ window.location.href = "index.html"; }
+</script>
+
+</body>
+</html>
