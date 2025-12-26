@@ -1,244 +1,176 @@
+<?php
+// ================= KONFIGURASI =================
+$API_KEY = "b946c6d83873d1c4ab5906554ea45d39"; // API Key kamu
+$API_URL = "https://premiumku.store/api/";
+$WA_ADMIN = "628123456789"; // Ganti nomor WA Admin kamu
+
+// ================= LOGIC API (SERVER SIDE) =================
+if (isset($_GET['action'])) {
+    header('Content-Type: application/json');
+    
+    function callPremiumku($endpoint, $postData) {
+        $ch = curl_init($endpoint);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        return $response;
+    }
+
+    if ($_GET['action'] == 'get_products') {
+        echo callPremiumku($API_URL . "products", ["api_key" => $API_KEY]);
+    } 
+    elseif ($_GET['action'] == 'get_stock') {
+        $id = $_GET['id'] ?? 0;
+        echo callPremiumku($API_URL . "stock", ["api_key" => $API_KEY, "product_id" => (int)$id]);
+    } 
+    elseif ($_GET['action'] == 'create_order') {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+        $data['api_key'] = $API_KEY;
+        echo callPremiumku($API_URL . "order", $data);
+    }
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Order Layanan By Roja</title>
-<style>
-body{font-family:Arial, sans-serif;background:#f5f5f5;padding:20px;margin:0;}
-.container{max-width:450px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
-label{font-weight:bold;display:block;margin-top:10px;}
-select,input{width:100%;padding:10px;margin-top:5px;border-radius:8px;border:1px solid #ccc;}
-button{margin-top:18px;width:100%;padding:12px;border:none;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:bold;cursor:pointer;}
-.hidden{display:none;}
-.price-box{margin-top:10px;font-size:18px;font-weight:bold;color:#008000;}
-.loading{color:#007bff;font-weight:bold;margin-top:8px;display:none;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order RojaServer</title>
+    <style>
+        body{font-family:'Segoe UI', Tahoma, sans-serif; background:#f4f7f6; padding:20px; margin:0;}
+        .container{max-width:450px; margin:auto; background:#fff; padding:25px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+        h2{text-align:center; color:#333; margin-bottom:20px;}
+        label{font-weight:bold; display:block; margin-top:15px; color:#555;}
+        select, input{width:100%; padding:12px; margin-top:5px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;}
+        button{margin-top:20px; width:100%; padding:14px; border:none; border-radius:8px; background:#000; color:#fff; font-size:16px; font-weight:bold; cursor:pointer; transition: 0.3s;}
+        button:hover{background:#333;}
+        .btn-wa{background:#25d366;}
+        .btn-wa:hover{background:#128c7e;}
+        .hidden{display:none;}
+        .price-box{margin-top:15px; padding:10px; background:#e8f5e9; border-radius:8px; font-size:18px; font-weight:bold; color:#2e7d32; text-align:center;}
+        .info-stok{font-size:13px; color:#666; margin-top:5px;}
+        #result{margin-top:15px; padding:10px; border-radius:8px;}
+    </style>
 </head>
 <body>
 
 <div class="container">
-<h2>Form Pesanan RojaServer</h2>
+    <h2>RojaServer Order</h2>
 
-<form id="orderForm">
+    <label>Pilih Metode Order:</label>
+    <select id="metodeOrder" onchange="switchMode()">
+        <option value="biasa">Order Biasa (WhatsApp)</option>
+        <option value="fast" selected>Order FAST (Otomatis API)</option>
+    </select>
 
-<label>Metode Order:</label>
-<select id="metodeOrder">
-  <option value="biasa">Order Biasa</option>
-  <option value="fast">Order FAST (Premiumku)</option>
-</select>
+    <div id="normalBox" class="hidden">
+        <label>Pilih Layanan:</label>
+        <select id="productNormal">
+            <option value="Followers Instagram">Followers Instagram</option>
+            <option value="Followers TikTok">Followers TikTok</option>
+            <option value="App Premium">App Premium</option>
+        </select>
+        <label>Target (Username/Link):</label>
+        <input type="text" id="targetNormal" placeholder="Contoh: @username">
+        <button class="btn-wa" onclick="orderBiasa()">ORDER VIA WHATSAPP</button>
+    </div>
 
-<!-- ================= ORDER BIASA ================= -->
-<div id="normalBox">
+    <div id="fastBox">
+        <label>Produk FAST:</label>
+        <select id="fastProduct" onchange="cekStok()">
+            <option value="">Memuat produk...</option>
+        </select>
+        <div id="stokText" class="info-stok"></div>
 
-<label>Pilih Produk:</label>
-<select id="product">
-  <option value="">-- Pilih Produk --</option>
-  <option value="followers_ig">Followers Instagram Indonesia</option>
-  <option value="followers_tt">Followers TikTok Indonesia</option>
-  <option value="likes_ig">Like Instagram Indonesia</option>
-  <option value="likes_tt">Like TikTok Indonesia</option>
-  <option value="app_prem">App Premium</option>
-</select>
+        <label>Jumlah:</label>
+        <input type="number" id="fastQty" value="1" min="1">
 
-<div id="jumlahBox" class="hidden">
-  <label>Pilih Jumlah / Paket:</label>
-  <select id="jumlah"></select>
-</div>
+        <label>WhatsApp Target:</label>
+        <input type="text" id="fastWa" placeholder="628xxxxxx">
 
-<label id="labelUsername" class="hidden">Username / Link Profil:</label>
-<input type="text" id="username" class="hidden">
+        <button onclick="prosesOrderFast()">BUAT ORDER FAST</button>
+    </div>
 
-<label>Nomor WhatsApp:</label>
-<input type="text" id="phone">
-
-<div id="priceDisplay" class="price-box hidden"></div>
-
-<button type="submit">Order Sekarang</button>
-</div>
-
-<!-- ================= FAST MODE ================= -->
-<div id="fastBox" class="hidden">
-
-<label>Pilih Produk FAST:</label>
-<select id="fastProduct"></select>
-<div id="loadingFast" class="loading">Memuat produk FAST...</div>
-
-<div id="stockInfo" style="margin-top:8px;font-size:14px;"></div>
-
-<label>Jumlah:</label>
-<input type="number" id="fastQty" min="1" value="1">
-
-<label>Nomor WhatsApp Target:</label>
-<input type="text" id="fastWa" placeholder="628xxxx">
-
-<button type="button" id="fastOrderBtn">BUAT ORDER FAST</button>
-
-<div id="fastResult" style="margin-top:15px;font-size:14px;"></div>
-</div>
-
-</form>
+    <div id="result"></div>
 </div>
 
 <script>
-/* ================= HARGA ORDER BIASA ================= */
-const harga = {
- followers_ig:{100:11000,200:22000,300:33000,400:44000,500:55000,1000:110000,2000:220000,5000:550000,10000:1100000},
- followers_tt:{100:10000,200:20000,300:30000,400:40000,500:50000,1000:100000,2000:200000,5000:500000,10000:1000000},
- likes_ig:{100:5000,200:10000,300:15000,400:20000,500:25000,1000:50000,2000:100000,5000:250000,10000:500000},
- likes_tt:{100:6000,200:12000,300:18000,400:24000,500:30000,1000:60000,2000:120000,5000:300000,10000:600000},
- app_prem:{
-  "Netflix 1 Bulan":45000,
-  "Spotify Premium 1 Bulan (No Garansi)":15000,
-  "Spotify Premium 1 Bulan (Full Garansi)":30000,
-  "Alight Motion Premium 1 Tahun":10000,
-  "YouTube Premium Famplan 1 Bulan":10000,
-  "YouTube Premium Mixplan 1 Bulan":17000,
-  "YouTube Premium Famplan 2 Bulan":20000,
-  "YouTube Premium Mixplan 3 Bulan":36000,
-  "YouTube Premium Mixplan + email 3 Bulan":40000,
-  "Capcut Premium 1 Bulan":20000,
-  "Gemini Premium 1 Tahun + 2TB":35000,
-  "GPT Premium 1 Bulan":30000,
-  "Vidio Premium 1 Bulan (TV)":30000,
-  "Vidio Premium 1 Bulan (Mobile)":35000,
-  "Vidio Premium 1 Bulan (All Device)":42000,
-  "Canva Premium 1 Bulan":5000,
-  "Canva Premium 1 Bulan + Designer":10000
- }
-};
+// Jalankan saat pertama kali dibuka
+window.onload = muatProduk;
 
-/* ================= ELEMENT ================= */
-const metodeOrder = document.getElementById("metodeOrder");
-const normalBox = document.getElementById("normalBox");
-const fastBox = document.getElementById("fastBox");
-
-const product = document.getElementById("product");
-const jumlah = document.getElementById("jumlah");
-const jumlahBox = document.getElementById("jumlahBox");
-const priceDisplay = document.getElementById("priceDisplay");
-const username = document.getElementById("username");
-const labelUsername = document.getElementById("labelUsername");
-
-/* ================= ORDER BIASA LOGIC ================= */
-product.addEventListener("change",()=>{
-  const p = product.value;
-  jumlah.innerHTML = "";
-  priceDisplay.classList.add("hidden");
-
-  if(!p) return;
-
-  if(p.includes("followers") || p.includes("likes")){
-    username.classList.remove("hidden");
-    labelUsername.classList.remove("hidden");
-  } else {
-    username.classList.add("hidden");
-    labelUsername.classList.add("hidden");
-  }
-
-  jumlahBox.classList.remove("hidden");
-
-  const list = harga[p];
-  Object.keys(list).forEach(i=>{
-    jumlah.innerHTML += `<option value="${i}">${i}</option>`;
-  });
-
-  const updatePrice = ()=>{
-    priceDisplay.textContent = "Total: Rp " + list[jumlah.value].toLocaleString();
-    priceDisplay.classList.remove("hidden");
-  };
-
-  jumlah.addEventListener("change", updatePrice);
-  updatePrice();
-});
-
-/* ================= FAST CONFIG ================= */
-const API_KEY = "b946c6d83873d1c4ab5906554ea45d39";
-const API_BASE = "https://premiumku.store/api/";
-
-const fastProduct = document.getElementById("fastProduct");
-const fastQty = document.getElementById("fastQty");
-const fastWa = document.getElementById("fastWa");
-const fastOrderBtn = document.getElementById("fastOrderBtn");
-const fastResult = document.getElementById("fastResult");
-const stockInfo = document.getElementById("stockInfo");
-const loadingFast = document.getElementById("loadingFast");
-
-/* ================= SWITCH MODE ================= */
-metodeOrder.addEventListener("change",()=>{
-  if(metodeOrder.value==="fast"){
-    normalBox.classList.add("hidden");
-    fastBox.classList.remove("hidden");
-    loadFastProducts();
-  } else {
-    fastBox.classList.add("hidden");
-    normalBox.classList.remove("hidden");
-  }
-});
-
-/* ================= FAST PRODUCTS ================= */
-async function loadFastProducts(){
-  loadingFast.style.display="block";
-  const res = await fetch(API_BASE+"products",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ api_key: API_KEY })
-  });
-  const data = await res.json();
-  loadingFast.style.display="none";
-
-  fastProduct.innerHTML = `<option value="">-- Pilih Produk FAST --</option>`;
-  data.products.forEach(p=>{
-    if(p.status==="available"){
-      fastProduct.innerHTML += `<option value="${p.id}">${p.name} - Rp ${p.price.toLocaleString()}</option>`;
-    }
-  });
+function switchMode() {
+    const mode = document.getElementById('metodeOrder').value;
+    document.getElementById('normalBox').classList.toggle('hidden', mode !== 'biasa');
+    document.getElementById('fastBox').classList.toggle('hidden', mode === 'biasa');
+    if(mode === 'fast') muatProduk();
 }
 
-/* ================= CEK STOK ================= */
-fastProduct.addEventListener("change",async()=>{
-  if(!fastProduct.value) return;
-  const res = await fetch(API_BASE+"stock",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      api_key: API_KEY,
-      product_id: Number(fastProduct.value)
-    })
-  });
-  const data = await res.json();
-  stockInfo.innerHTML = `Stok tersedia: <b>${data.stock}</b>`;
-  fastQty.max = data.stock;
-});
+async function muatProduk() {
+    try {
+        const res = await fetch('?action=get_products');
+        const data = await res.json();
+        const select = document.getElementById('fastProduct');
+        select.innerHTML = '<option value="">-- Pilih Produk --</option>';
+        data.products.forEach(p => {
+            if(p.status === 'available') {
+                select.innerHTML += `<option value="${p.id}">${p.name} - Rp ${p.price.toLocaleString()}</option>`;
+            }
+        });
+    } catch (e) { console.error("Gagal muat produk"); }
+}
 
-/* ================= CREATE FAST ORDER ================= */
-fastOrderBtn.addEventListener("click",async()=>{
-  fastResult.innerHTML="⏳ Memproses...";
-  const res = await fetch(API_BASE+"order",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      api_key: API_KEY,
-      product_id: Number(fastProduct.value),
-      qty: Number(fastQty.value),
-      whatsapp: fastWa.value
-    })
-  });
-  const data = await res.json();
+async function cekStok() {
+    const id = document.getElementById('fastProduct').value;
+    if(!id) return;
+    const res = await fetch('?action=get_stock&id=' + id);
+    const data = await res.json();
+    document.getElementById('stokText').innerHTML = `Stok tersedia: <b>${data.stock}</b>`;
+}
 
-  if(!data.success){
-    fastResult.innerHTML = `<span style="color:red">${data.message}</span>`;
-    return;
-  }
+function orderBiasa() {
+    const p = document.getElementById('productNormal').value;
+    const t = document.getElementById('targetNormal').value;
+    const msg = `Halo Admin, saya mau order:\nProduk: ${p}\nTarget: ${t}`;
+    window.open(`https://wa.me/<?php echo $WA_ADMIN; ?>?text=${encodeURIComponent(msg)}`);
+}
 
-  fastResult.innerHTML = `
-    <b>ORDER BERHASIL</b><br>
-    Invoice: ${data.invoice}<br>
-    Total: Rp ${data.total.toLocaleString()}<br>
-    Status: Diproses...
-  `;
-});
+async function prosesOrderFast() {
+    const resDiv = document.getElementById('result');
+    resDiv.innerHTML = "⌛ Sedang memproses...";
+    resDiv.style.background = "#fff3cd";
+
+    const payload = {
+        product_id: parseInt(document.getElementById('fastProduct').value),
+        qty: parseInt(document.getElementById('fastQty').value),
+        whatsapp: document.getElementById('fastWa').value
+    };
+
+    try {
+        const res = await fetch('?action=create_order', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if(result.success) {
+            resDiv.style.background = "#d4edda";
+            resDiv.style.color = "#155724";
+            resDiv.innerHTML = `<b>BERHASIL!</b><br>Invoice: ${result.invoice}<br>Total: Rp ${result.total.toLocaleString()}`;
+        } else {
+            resDiv.style.background = "#f8d7da";
+            resDiv.style.color = "#721c24";
+            resDiv.innerHTML = `<b>GAGAL:</b> ${result.message}`;
+        }
+    } catch (e) { 
+        resDiv.innerHTML = "Terjadi kesalahan koneksi ke server."; 
+    }
+}
 </script>
-
 </body>
 </html>
